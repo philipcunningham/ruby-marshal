@@ -1,0 +1,77 @@
+name:          ruby-marshal
+version:       0.0.1
+synopsis:      Parse a subset of Ruby objects serialised with Marshal.dump.
+description:   Parse a subset of Ruby objects serialised with Marshal.dump.
+homepage:      https://github.com/filib/ruby-marshal
+license:       GPL-2
+license-file:  LICENSE
+author:        Philip Cunningham
+maintainer:    802389+philipcunningham@users.noreply.github.com
+category:      Data
+build-type:    Simple
+cabal-version: >=1.10
+
+Source-repository head
+  type: git
+  location: https://github.com/filib/ruby-marshal
+
+flag developer
+  default: False
+
+library
+  if flag(developer)
+    ghc-options:
+      -fprof-auto
+      -rtsopts
+  hs-source-dirs:
+    src
+  build-depends:
+      base       >= 4.7 && < 5
+    , cereal     >= 0.3.5.0 && < 0.5.0.0
+    , bytestring >= 0.9.0
+    , containers >= 0.5.0
+    , vector     >= 0.10.0
+  default-language:
+    Haskell2010
+  exposed-modules:
+      Data.Ruby.Marshal
+    , Data.Ruby.Marshal.Get
+    , Data.Ruby.Marshal.Object
+
+executable Profiling
+  build-depends:
+      base          >= 4.7 && < 5
+    , bytestring    >= 0.9.0
+    , directory     >= 1.2.1.0
+    , ruby-marshal  -any
+  hs-source-dirs:
+    examples
+  main-is:
+    Profiling.hs
+  default-language:
+    Haskell2010
+  ghc-options:
+    -fprof-auto
+    -rtsopts
+
+test-suite spec
+  ghc-options:
+    -Wall
+    -Werror
+  hs-source-dirs:
+    src, test
+  build-depends:
+      base       >= 4.7 && <5
+    , cereal     >= 0.3.5.0 && < 0.5.0.0
+    , bytestring >= 0.9.0
+    , containers >= 0.5.0.0
+    , hspec
+    , vector     >= 0.10.0
+  default-language:
+    Haskell2010
+  other-modules:
+    Spec
+  main-is:
+    Spec.hs
+  type:
+    exitcode-stdio-1.0

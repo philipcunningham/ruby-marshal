@@ -1,0 +1,32 @@
+#! /usr/bin/env ruby
+
+unless RUBY_VERSION >= "2.0.0"
+  raise "Please upgrade to at least Ruby 2.0.0."
+end
+
+TYPES = {
+  "nil"         => nil,
+  "true"        => true,
+  "false"       => false,
+  "0"           => 0,
+  "neg42"       => -42,
+  "42"          => 42,
+  "neg2048"     => -2048,
+  "2048"        => 2048,
+  "nilArray"    => [nil],
+  "boolArray"   => [true, false],
+  "fixnumArray" => [-2048, -42, 0, 42, 2048],
+  "bigArray"    => (-10000..10000).to_a
+}
+
+def dump(name, x)
+  File.open([File.expand_path(File.dirname(__FILE__)), "bin", [name, "bin"].join(".")].join("/"), "w") do |f|
+    f.write(Marshal.dump(x))
+  end
+end
+
+puts "Dumping binary representations..."
+
+TYPES.each do |key, val|
+  dump(key, val)
+end
