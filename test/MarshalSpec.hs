@@ -68,3 +68,8 @@ spec = describe "load" $ do
     it "should parse" $ do
       object <- loadBin "test/bin/fixnumArray.bin"
       object `shouldBe` Right (RArray $ V.fromList [RFixnum (-2048), RFixnum (-42), RFixnum 0, RFixnum 42, RFixnum 2048])
+
+  context "when we have { 0 => false, 1 => true }" $ do
+    it "should parse" $ do
+      object <- loadBin "test/bin/fixnumHash.bin"
+      object `shouldBe` Right (RHash $ V.fromList [(RFixnum 0, RBool False), (RFixnum 1, RBool True)])

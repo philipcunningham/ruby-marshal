@@ -18,6 +18,7 @@ data RubyObject = RNil
                   | RBool                       !Bool
                   | RFixnum      {-# UNPACK #-} !Int
                   | RArray                      !(Vector RubyObject)
+                  | RHash                       !(Vector (RubyObject, RubyObject))
                   | RError                      !Error
                   deriving (Eq, Show)
 
