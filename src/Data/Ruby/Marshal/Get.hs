@@ -1,7 +1,7 @@
 {-# LANGUAGE MultiWayIf #-}
 
 module Data.Ruby.Marshal.Get (
-  getNil, getBool, getUnsignedInt, getFixnum, getArray
+  getNil, getBool, getFixnum, getArray, getHash
 ) where
 
 import Control.Applicative
@@ -89,3 +89,8 @@ getArray :: Get a -> Get (V.Vector a)
 getArray g = do
   len <- getFixnum
   V.replicateM len g
+
+getHash :: Get a -> Get b -> Get (V.Vector (a, b))
+getHash k v = do
+  len <- getFixnum
+  V.replicateM len $ (,) <$> k <*> v

@@ -18,6 +18,7 @@ data RubyObject = RNil
                   | RBool                       !Bool
                   | RFixnum      {-# UNPACK #-} !Int
                   | RArray                      !(Vector RubyObject)
+                  | RHash                       !(Vector (RubyObject, RubyObject))
                   | RError                      !Error
                   deriving (Eq, Show)
 
@@ -28,4 +29,5 @@ getRubyObject = do
      | c == 70 || c == 84 -> RBool   <$> getBool
      | c == 105           -> RFixnum <$> getFixnum
      | c == 91            -> RArray  <$> getArray getRubyObject
+     | c == 123           -> RHash   <$> getHash getRubyObject getRubyObject
      | otherwise          -> return   $  RError Unsupported

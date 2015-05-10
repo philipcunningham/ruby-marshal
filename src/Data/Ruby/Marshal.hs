@@ -6,21 +6,21 @@ module Data.Ruby.Marshal (
   module Data.Ruby.Marshal.Object
 ) where
 
-import Data.Serialize.Get       (runGet)
-import Data.Ruby.Marshal.Object (RubyObject(..), getRubyObject)
-import Data.Ruby.Marshal.Get    (getUnsignedInt)
+import Data.Ruby.Marshal.Get
+import Data.Ruby.Marshal.Object
+
+import Data.Serialize.Get (runGet, getWord8)
+import Data.Word          (Word8)
 
 import qualified Data.ByteString as BS
 
-loadVerbose :: BS.ByteString -> Either String ((Int, Int), RubyObject)
+loadVerbose :: BS.ByteString -> Either String ((Word8, Word8), RubyObject)
 loadVerbose =
-  runGet f
-  where
-    f = do
-      major  <- getUnsignedInt
-      minor  <- getUnsignedInt
-      object <- getRubyObject
-      return ((major, minor), object)
+  runGet $ do
+    major  <- getWord8
+    minor  <- getWord8
+    object <- getRubyObject
+    return ((major, minor), object)
 
 load :: BS.ByteString -> Either String RubyObject
 load x = case loadVerbose x of
