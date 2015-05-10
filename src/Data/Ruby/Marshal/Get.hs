@@ -1,7 +1,7 @@
 {-# LANGUAGE MultiWayIf #-}
 
 module Data.Ruby.Marshal.Get (
-  getNil, getBool, getUnsignedInt, getFixnum, getArray, getHash
+  getNil, getBool, getFixnum, getArray, getHash
 ) where
 
 import Control.Applicative
