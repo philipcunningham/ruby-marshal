@@ -8,11 +8,11 @@ Haskell library to parse a subset of Ruby objects serialised with Marshal.dump.
 
 ## TODO
 
-- [ ] Support `nil`
-- [ ] Support `true | false`
-- [ ] Support `Fixnum`
-- [ ] Support `Array` https://github.com/filib/ruby-marshal/issues/1
-- [ ] Support `Hash` https://github.com/filib/ruby-marshal/issues/2
+- [x] Support `nil`
+- [x] Support `true | false`
+- [x] Support `Fixnum`
+- [x] Support `Array` https://github.com/filib/ruby-marshal/issues/1
+- [x] Support `Hash` https://github.com/filib/ruby-marshal/issues/2
 - [ ] Support `String` https://github.com/filib/ruby-marshal/issues/3
 - [ ] Support `Symbol` https://github.com/filib/ruby-marshal/issues/4
 - [ ] Support `Float` https://github.com/filib/ruby-marshal/issues/12
