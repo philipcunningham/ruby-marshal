@@ -7,10 +7,12 @@ module Data.Ruby.Marshal.Object (
 
 import Control.Applicative
 import Data.Ruby.Marshal.Get
+import Prelude
 
 import Data.Serialize.Get  (Get, getWord8, lookAhead)
 import Data.Vector         (Vector)
-import Prelude
+
+import qualified Data.ByteString as BS
 
 data Error = Unknown | Unsupported deriving (Eq, Show)
 
@@ -19,6 +21,7 @@ data RubyObject = RNil
                   | RFixnum      {-# UNPACK #-} !Int
                   | RArray                      !(Vector RubyObject)
                   | RHash                       !(Vector (RubyObject, RubyObject))
+                  | RString                     !BS.ByteString
                   | RError                      !Error
                   deriving (Eq, Show)
 

@@ -4,6 +4,7 @@ module MarshalSpec (spec) where
 
 import Data.Ruby.Marshal
 import Test.Hspec
+
 import qualified Data.ByteString as BS
 import qualified Data.Vector     as V
 
