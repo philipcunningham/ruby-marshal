@@ -73,3 +73,8 @@ spec = describe "load" $ do
     it "should parse" $ do
       object <- loadBin "test/bin/fixnumHash.bin"
       object `shouldBe` Right (RHash $ V.fromList [(RFixnum 0, RBool False), (RFixnum 1, RBool True)])
+
+  context "when we have 'hello haskell'" $ do
+    it "should parse" $ do
+      object <- loadBin "test/bin/rawString.bin"
+      object `shouldBe` Right (RString "hello haskell")
