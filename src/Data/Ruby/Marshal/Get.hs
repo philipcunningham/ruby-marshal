@@ -14,16 +14,30 @@ import Prelude
 
 import qualified Data.Vector as V
 
-for :: a -> b -> (b -> Bool) -> (b -> b) -> ((a, b) -> a) -> a
-for acc index predicate modifier body =
-  if predicate index then
-    for (body (acc, index)) (modifier $! index) predicate modifier body
-  else acc
+getNil :: Get ()
+getNil = tag 48
 
-tag :: Word8 -> Get ()
-tag t = do
-  b <- getWord8
-  guard $ t == b
+getBool :: Get Bool
+getBool = True <$ tag 84 <|> False <$ tag 70
+
+getZero :: Get Int
+getZero = 0 <$ tag 0
+
+getFixnum :: Get Int
+getFixnum = do
+  _ <- skip 1
+  getZero <|> getBetween5and127 <|> getBetweenNeg128andNeg3
+          <|> getGreaterThan122 <|> getLessThanNeg123
+
+getArray :: Get a -> Get (V.Vector a)
+getArray g = do
+  len <- getFixnum
+  V.replicateM len g
+
+getHash :: Get a -> Get b -> Get (V.Vector (a, b))
+getHash k v = do
+  len <- getFixnum
+  V.replicateM len $ (,) <$> k <*> v
 
 getUnsignedInt :: Get Int
 getUnsignedInt = do
@@ -34,15 +48,6 @@ getSignedInt :: Get Int
 getSignedInt = do
   i <- getUnsignedInt
   return $ if i > 127 then i - 256 else i
-
-getNil :: Get ()
-getNil = tag 48
-
-getBool :: Get Bool
-getBool = True <$ tag 84 <|> False <$ tag 70
-
-getZero :: Get Int
-getZero = 0 <$ tag 0
 
 getBetween5and127 :: Get Int
 getBetween5and127 = do
@@ -55,12 +60,6 @@ getBetweenNeg128andNeg3 = do
   x <- getSignedInt
   if | x > -129 && x < -4 -> return (x + 5)
      | otherwise          -> empty
-
-twiddleWith :: (Int -> Int -> Int -> Int) -> (Get Int, Int) -> Get Int
-twiddleWith f (acc, index) = do
-  x <- acc
-  y <- getUnsignedInt
-  return $ f x y index
 
 getGreaterThan122 :: Get Int
 getGreaterThan122 = do
@@ -79,18 +78,19 @@ getLessThanNeg123 = do
     f :: Int -> Int -> Int -> Int
     f x' y' z' = (x' .&. complement (255 `shiftL` (8 * z'))) .|. (y' `shiftL` (8 * z'))
 
-getFixnum :: Get Int
-getFixnum = do
-  _ <- skip 1
-  getZero <|> getBetween5and127 <|> getBetweenNeg128andNeg3
-          <|> getGreaterThan122 <|> getLessThanNeg123
+tag :: Word8 -> Get ()
+tag t = do
+  b <- getWord8
+  guard $ t == b
 
-getArray :: Get a -> Get (V.Vector a)
-getArray g = do
-  len <- getFixnum
-  V.replicateM len g
+twiddleWith :: (Int -> Int -> Int -> Int) -> (Get Int, Int) -> Get Int
+twiddleWith f (acc, index) = do
+  x <- acc
+  y <- getUnsignedInt
+  return $ f x y index
 
-getHash :: Get a -> Get b -> Get (V.Vector (a, b))
-getHash k v = do
-  len <- getFixnum
-  V.replicateM len $ (,) <$> k <*> v
+for :: a -> b -> (b -> Bool) -> (b -> b) -> ((a, b) -> a) -> a
+for acc index predicate modifier body =
+  if predicate index then
+    for (body (acc, index)) (modifier $! index) predicate modifier body
+  else acc
