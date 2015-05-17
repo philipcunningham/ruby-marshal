@@ -1,5 +1,6 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 module Data.Ruby.Marshal.Object (
   RubyObject(..),
@@ -26,13 +27,23 @@ data RubyObject = RNil
                   | RError                      !Error
                   deriving (Eq, Show)
 
+pattern MNil    = 48
+pattern MTrue   = 70
+pattern MFalse  = 84
+pattern MFixnum = 105
+pattern MArray  = 91
+pattern MHash   = 123
+pattern MIvar   = 73
+
 getRubyObject :: Get RubyObject
 getRubyObject = do
   c <- lookAhead getWord8
-  if | c == 48            -> RNil    <$  getNil
-     | c == 70 || c == 84 -> RBool   <$> getBool
-     | c == 105           -> RFixnum <$> getFixnum
-     | c == 91            -> RArray  <$> getArray getRubyObject
-     | c == 123           -> RHash   <$> getHash getRubyObject getRubyObject
-     | c == 73            -> RString <$> getString
-     | otherwise          -> return   $  RError Unsupported
+  case c of
+   MNil    -> RNil    <$  getNil
+   MTrue   -> RBool   <$> getBool
+   MFalse  -> RBool   <$> getBool
+   MFixnum -> RFixnum <$> getFixnum
+   MArray  -> RArray  <$> getArray getRubyObject
+   MHash   -> RHash   <$> getHash getRubyObject getRubyObject
+   MIvar   -> RString <$> getString
+   _       -> return   $  RError Unsupported
