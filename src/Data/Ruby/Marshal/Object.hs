@@ -1,4 +1,5 @@
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Data.Ruby.Marshal.Object (
   RubyObject(..),
@@ -7,10 +8,12 @@ module Data.Ruby.Marshal.Object (
 
 import Control.Applicative
 import Data.Ruby.Marshal.Get
+import Prelude
 
 import Data.Serialize.Get  (Get, getWord8, lookAhead)
 import Data.Vector         (Vector)
-import Prelude
+
+import qualified Data.ByteString as BS
 
 data Error = Unknown | Unsupported deriving (Eq, Show)
 
@@ -19,6 +22,7 @@ data RubyObject = RNil
                   | RFixnum      {-# UNPACK #-} !Int
                   | RArray                      !(Vector RubyObject)
                   | RHash                       !(Vector (RubyObject, RubyObject))
+                  | RString                     !BS.ByteString
                   | RError                      !Error
                   deriving (Eq, Show)
 
@@ -30,4 +34,5 @@ getRubyObject = do
      | c == 105           -> RFixnum <$> getFixnum
      | c == 91            -> RArray  <$> getArray getRubyObject
      | c == 123           -> RHash   <$> getHash getRubyObject getRubyObject
+     | c == 73            -> RString <$> getString
      | otherwise          -> return   $  RError Unsupported

@@ -4,6 +4,7 @@ module MarshalSpec (spec) where
 
 import Data.Ruby.Marshal
 import Test.Hspec
+
 import qualified Data.ByteString as BS
 import qualified Data.Vector     as V
 
@@ -73,3 +74,8 @@ spec = describe "load" $ do
     it "should parse" $ do
       object <- loadBin "test/bin/fixnumHash.bin"
       object `shouldBe` Right (RHash $ V.fromList [(RFixnum 0, RBool False), (RFixnum 1, RBool True)])
+
+  context "when we have 'hello haskell'" $ do
+    it "should parse" $ do
+      object <- loadBin "test/bin/rawString.bin"
+      object `shouldBe` Right (RString "hello haskell")

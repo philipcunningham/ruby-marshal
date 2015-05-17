@@ -17,7 +17,8 @@ TYPES = {
   "boolArray"   => [true, false],
   "fixnumArray" => [-2048, -42, 0, 42, 2048],
   "bigArray"    => (-10000..10000).to_a,
-  "fixnumHash"  => { 0 => false, 1 => true }
+  "fixnumHash"  => { 0 => false, 1 => true },
+  "rawString"   => "hello haskell"
 }
 
 def dump(name, x)

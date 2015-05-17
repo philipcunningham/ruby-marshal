@@ -1,3 +1,4 @@
+# haskell
 dist
 cabal-dev
 *.o
@@ -15,3 +16,6 @@ cabal.sandbox.config
 *.aux
 *.hp
 *.ps
+
+# ruby
+.ruby-version
