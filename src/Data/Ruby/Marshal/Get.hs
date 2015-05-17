@@ -8,7 +8,7 @@ module Data.Ruby.Marshal.Get (
 import Control.Applicative
 
 import Control.Monad       (guard)
-import Data.Serialize.Get  (Get, getBytes, getWord8, skip)
+import Data.Serialize.Get  (Get, getBytes, getWord8, lookAhead, skip)
 import Data.Bits           ((.&.), (.|.), complement, shiftL)
 import Data.Word           (Word8)
 import Prelude
@@ -41,8 +41,8 @@ getHash k v = do
 getString :: Get BS.ByteString
 getString = do
   _ <- skip 1
-  len <- getFixnum
-  getBytes len
+  c <- lookAhead getWord8
+  if c == 34 then (getFixnum >>= (\len -> getBytes len)) else empty
 
 getUnsignedInt :: Get Int
 getUnsignedInt = do
