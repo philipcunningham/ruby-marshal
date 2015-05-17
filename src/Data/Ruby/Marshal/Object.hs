@@ -11,7 +11,7 @@ import Control.Applicative
 import Data.Ruby.Marshal.Get
 import Prelude
 
-import Data.Serialize.Get  (Get, getWord8, lookAhead)
+import Data.Serialize.Get  (Get, getWord8)
 import Data.Vector         (Vector)
 
 import qualified Data.ByteString as BS
@@ -28,8 +28,8 @@ data RubyObject = RNil
                   deriving (Eq, Show)
 
 pattern MNil       = 48
-pattern MTrue      = 70
-pattern MFalse     = 84
+pattern MTrue      = 84
+pattern MFalse     = 70
 pattern MFixnum    = 105
 pattern MArray     = 91
 pattern MHash      = 123
@@ -38,17 +38,19 @@ pattern MRawString = 34
 
 getRubyObject :: Get RubyObject
 getRubyObject = do
-  c <- lookAhead getWord8
+  c <- getWord8
   case c of
-   MNil    -> RNil    <$  getNil
-   MTrue   -> RBool   <$> getBool
-   MFalse  -> RBool   <$> getBool
+   MNil    -> return RNil
+   MTrue   -> return $ RBool True
+   MFalse  -> return $ RBool False
    MFixnum -> RFixnum <$> getFixnum
    MArray  -> RArray  <$> getArray getRubyObject
    MHash   -> RHash   <$> getHash getRubyObject getRubyObject
    MIvar   -> do
-     ivarc <- lookAhead (getWord8 >> getWord8)
+     ivarc <- getWord8
      case ivarc of
        MRawString -> RString <$> getString
-       _          -> return   $  RError Unsupported
-   _       -> return   $  RError Unsupported
+       _          -> unsupported
+   _       -> unsupported
+  where
+    unsupported = return $ RError Unsupported
