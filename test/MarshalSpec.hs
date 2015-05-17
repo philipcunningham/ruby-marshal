@@ -79,3 +79,8 @@ spec = describe "load" $ do
     it "should parse" $ do
       object <- loadBin "test/bin/rawString.bin"
       object `shouldBe` Right (RString "hello haskell")
+
+  context "when we have 3.33333" $ do
+    it "should parse" $ do
+      object <- loadBin "test/bin/float.bin"
+      object `shouldBe` Right (RFloat 3.33333)
