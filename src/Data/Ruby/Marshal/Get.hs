@@ -8,7 +8,7 @@ module Data.Ruby.Marshal.Get (
 import Control.Applicative
 
 import Control.Monad       (guard)
-import Data.Serialize.Get  (Get, getBytes, getWord8, skip)
+import Data.Serialize.Get  (Get, getBytes, getWord8)
 import Data.Bits           ((.&.), (.|.), complement, shiftL)
 import Data.Word           (Word8)
 import Prelude
@@ -24,7 +24,6 @@ getBool = True <$ tag 84 <|> False <$ tag 70
 
 getFixnum :: Get Int
 getFixnum = do
-  _ <- skip 1
   getZero <|> getBetween5and127 <|> getBetweenNeg128andNeg3
           <|> getGreaterThan122 <|> getLessThanNeg123
 
@@ -40,7 +39,6 @@ getHash k v = do
 
 getString :: Get BS.ByteString
 getString = do
-  _ <- skip 1
   getFixnum >>= getBytes
 
 getUnsignedInt :: Get Int
