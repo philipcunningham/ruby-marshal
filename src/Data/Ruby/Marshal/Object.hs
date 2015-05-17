@@ -50,7 +50,5 @@ getRubyObject = do
      ivarc <- getWord8
      case ivarc of
        MRawString -> RString <$> getString
-       _          -> unsupported
-   _       -> unsupported
-   where
-     unsupported = return $ RError Unsupported
+       _          -> getRubyObject
+   _       -> return $ RError Unsupported
