@@ -23,9 +23,7 @@ getBool :: Get Bool
 getBool = True <$ tag 84 <|> False <$ tag 70
 
 getFixnum :: Get Int
-getFixnum =
-  getZero <|> getBetween5and127 <|> getBetweenNeg128andNeg3
-          <|> getGreaterThan122 <|> getLessThanNeg123
+getFixnum = getZero <|> getBetween5and127 <|> getBetweenNeg128andNeg3 <|> getGreaterThan122 <|> getLessThanNeg123
 
 getArray :: Get a -> Get (V.Vector a)
 getArray g = do
