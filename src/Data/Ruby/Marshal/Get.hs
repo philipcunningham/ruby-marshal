@@ -42,7 +42,7 @@ getString :: Get BS.ByteString
 getString = do
   _ <- skip 1
   c <- lookAhead getWord8
-  if c == 34 then (getFixnum >>= (\len -> getBytes len)) else empty
+  if c == 34 then getFixnum >>= getBytes else empty
 
 getUnsignedInt :: Get Int
 getUnsignedInt = do
