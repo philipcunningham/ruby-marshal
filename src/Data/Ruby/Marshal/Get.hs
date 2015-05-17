@@ -22,9 +22,6 @@ getNil = tag 48
 getBool :: Get Bool
 getBool = True <$ tag 84 <|> False <$ tag 70
 
-getZero :: Get Int
-getZero = 0 <$ tag 0
-
 getFixnum :: Get Int
 getFixnum = do
   _ <- skip 1
@@ -41,12 +38,11 @@ getHash k v = do
   len <- getFixnum
   V.replicateM len $ (,) <$> k <*> v
 
-getString :: Get (BS.ByteString)
+getString :: Get BS.ByteString
 getString = do
-  _   <- skip 1
+  _ <- skip 1
   len <- getFixnum
-  str <- getBytes len
-  return str
+  getBytes len
 
 getUnsignedInt :: Get Int
 getUnsignedInt = do
@@ -57,6 +53,9 @@ getSignedInt :: Get Int
 getSignedInt = do
   i <- getUnsignedInt
   return $ if i > 127 then i - 256 else i
+
+getZero :: Get Int
+getZero = 0 <$ tag 0
 
 getBetween5and127 :: Get Int
 getBetween5and127 = do
