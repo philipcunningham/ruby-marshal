@@ -1,4 +1,5 @@
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Data.Ruby.Marshal.Object (
   RubyObject(..),
@@ -33,4 +34,5 @@ getRubyObject = do
      | c == 105           -> RFixnum <$> getFixnum
      | c == 91            -> RArray  <$> getArray getRubyObject
      | c == 123           -> RHash   <$> getHash getRubyObject getRubyObject
+     | c == 73            -> RString <$> getString
      | otherwise          -> return   $  RError Unsupported

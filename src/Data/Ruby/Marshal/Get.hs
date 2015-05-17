@@ -1,18 +1,20 @@
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Data.Ruby.Marshal.Get (
-  getNil, getBool, getFixnum, getArray, getHash
+  getNil, getBool, getFixnum, getArray, getHash, getString
 ) where
 
 import Control.Applicative
 
 import Control.Monad       (guard)
-import Data.Serialize.Get  (Get, getWord8, skip)
+import Data.Serialize.Get  (Get, getBytes, getWord8, skip)
 import Data.Bits           ((.&.), (.|.), complement, shiftL)
 import Data.Word           (Word8)
 import Prelude
 
-import qualified Data.Vector as V
+import qualified Data.ByteString as BS
+import qualified Data.Vector     as V
 
 getNil :: Get ()
 getNil = tag 48
@@ -38,6 +40,13 @@ getHash :: Get a -> Get b -> Get (V.Vector (a, b))
 getHash k v = do
   len <- getFixnum
   V.replicateM len $ (,) <$> k <*> v
+
+getString :: Get (BS.ByteString)
+getString = do
+  _   <- skip 1
+  len <- getFixnum
+  str <- getBytes len
+  return str
 
 getUnsignedInt :: Get Int
 getUnsignedInt = do
