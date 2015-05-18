@@ -31,9 +31,7 @@ getArray :: Get a -> Get (V.Vector a)
 getArray g = getFixnum >>= \len -> V.replicateM len g
 
 getHash :: Get a -> Get b -> Get (V.Vector (a, b))
-getHash k v = do
-  len <- getFixnum
-  V.replicateM len $ (,) <$> k <*> v
+getHash k v = getFixnum >>= \len -> V.replicateM len $ (,) <$> k <*> v
 
 getString :: Get BS.ByteString
 getString = getFixnum >>= getBytes
