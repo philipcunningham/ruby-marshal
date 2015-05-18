@@ -25,35 +25,35 @@ getBool :: Get Bool
 getBool = True <$ tag 84 <|> False <$ tag 70
 
 getFixnum :: Get Int
-getFixnum = zero <|> between5and127 <|> betweenNeg128andNeg3 <|> greaterThan122 <|> lessThanNeg123
+getFixnum = zero <|> gt4lt128 <|> gtNeg128ltNeg4 <|> gt122 <|> ltNeg123
   where
-    -- 0
+    -- zero
     zero :: Get Int
     zero = 0 <$ tag 0
-    -- 5 && 127
-    between5and127 :: Get Int
-    between5and127 = do
+    -- between 5 and 127
+    gt4lt128 :: Get Int
+    gt4lt128 = do
       x <- getSignedInt
       if | x > 4 && x < 128 -> return (x - 5)
          | otherwise        -> empty
-    -- -128 && -3
-    betweenNeg128andNeg3 :: Get Int
-    betweenNeg128andNeg3 = do
+    -- between -128 and -3
+    gtNeg128ltNeg4 :: Get Int
+    gtNeg128ltNeg4 = do
       x <- getSignedInt
       if | x > -129 && x < -4 -> return (x + 5)
          | otherwise          -> empty
-    -- (> 122)
-    greaterThan122 :: Get Int
-    greaterThan122 = do
+    -- greater than 122
+    gt122 :: Get Int
+    gt122 = do
       x <- getSignedInt
       if x < 0 then empty else
        for (return 0) 0 (< x) (+ 1) $ twiddleWith f
       where
         f :: Int -> Int -> Int -> Int
         f x' y' z' = x' .|. (y' `shiftL` (8 * z'))
-    -- (< -123)
-    lessThanNeg123 :: Get Int
-    lessThanNeg123 = do
+    -- less than -123
+    ltNeg123 :: Get Int
+    ltNeg123 = do
       x <- getSignedInt
       for (return (-1)) 0 (< (-x)) (+ 1) $ twiddleWith f
       where
