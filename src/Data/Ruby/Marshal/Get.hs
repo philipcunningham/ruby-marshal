@@ -47,9 +47,7 @@ getFloat = getFixnum >>= getBytes >>= \str ->
     Nothing -> empty
 
 getUnsignedInt :: Get Int
-getUnsignedInt = do
-  w <- getWord8
-  return $ fromEnum w
+getUnsignedInt = getWord8 >>= \c -> return $ fromEnum c
 
 getSignedInt :: Get Int
 getSignedInt = do
