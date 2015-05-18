@@ -47,7 +47,7 @@ getFixnum = zero <|> bt0and122 <|> btNeg123and2 <|> gt122 <|> ltNeg123
     gt122 = do
       x <- getSignedInt
       if x < 0 then empty else
-       for (return 0) 0 (< x) (+ 1) $ twiddleWith f
+       for (return 0) 0 (< x) (+ 1) $ twiddle f
       where
         f :: Int -> Int -> Int -> Int
         f x' y' z' = x' .|. (y' `shiftL` (8 * z'))
@@ -55,7 +55,7 @@ getFixnum = zero <|> bt0and122 <|> btNeg123and2 <|> gt122 <|> ltNeg123
     ltNeg123 :: Get Int
     ltNeg123 = do
       x <- getSignedInt
-      for (return (-1)) 0 (< (-x)) (+ 1) $ twiddleWith f
+      for (return (-1)) 0 (< (-x)) (+ 1) $ twiddle f
       where
         f :: Int -> Int -> Int -> Int
         f x' y' z' = (x' .&. complement (255 `shiftL` (8 * z'))) .|. (y' `shiftL` (8 * z'))
@@ -84,11 +84,8 @@ getSignedInt = getUnsignedInt >>= \i -> return $ if i > 127 then i - 256 else i
 tag :: Word8 -> Get ()
 tag t = getWord8 >>= \b -> guard $ t == b
 
-twiddleWith :: (Int -> Int -> Int -> Int) -> (Get Int, Int) -> Get Int
-twiddleWith f (acc, index) = do
-  x <- acc
-  y <- getUnsignedInt
-  return $ f x y index
+twiddle :: (Int -> Int -> Int -> Int) -> (Get Int, Int) -> Get Int
+twiddle f (acc, i) = acc >>= \x -> getUnsignedInt >>= \y -> return $ f x y i
 
 for :: a -> b -> (b -> Bool) -> (b -> b) -> ((a, b) -> a) -> a
 for acc index predicate modifier body =
