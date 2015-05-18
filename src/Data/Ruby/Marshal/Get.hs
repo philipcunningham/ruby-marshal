@@ -81,9 +81,7 @@ getLessThanNeg123 = do
     f x' y' z' = (x' .&. complement (255 `shiftL` (8 * z'))) .|. (y' `shiftL` (8 * z'))
 
 tag :: Word8 -> Get ()
-tag t = do
-  b <- getWord8
-  guard $ t == b
+tag t = getWord8 >>= \b -> guard $ t == b
 
 twiddleWith :: (Int -> Int -> Int -> Int) -> (Get Int, Int) -> Get Int
 twiddleWith f (acc, index) = do
