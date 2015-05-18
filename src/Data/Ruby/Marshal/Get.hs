@@ -11,6 +11,7 @@ import Control.Monad      (guard)
 import Data.Bits          ((.&.), (.|.), complement, shiftL)
 import Data.Serialize.Get (Get, getBytes, getWord8)
 import Data.String.Conv   (toS)
+import Text.Read          (readMaybe)
 import Data.Word          (Word8)
 import Prelude
 
@@ -42,7 +43,9 @@ getString = getFixnum >>= getBytes
 getFloat :: Get Double
 getFloat = do
   str <- getFixnum >>= getBytes
-  return (read . toS $ str)
+  case readMaybe . toS $ str of
+    Just x  -> return x
+    Nothing -> empty
 
 getUnsignedInt :: Get Int
 getUnsignedInt = do
