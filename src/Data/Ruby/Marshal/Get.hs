@@ -25,7 +25,40 @@ getBool :: Get Bool
 getBool = True <$ tag 84 <|> False <$ tag 70
 
 getFixnum :: Get Int
-getFixnum = getZero <|> getBetween5and127 <|> getBetweenNeg128andNeg3 <|> getGreaterThan122 <|> getLessThanNeg123
+getFixnum = zero <|> bt0and122 <|> btNeg123and2 <|> gt122 <|> ltNeg123
+  where
+    -- 0.
+    zero :: Get Int
+    zero = 0 <$ tag 0
+    -- between 0 and 122.
+    bt0and122 :: Get Int
+    bt0and122 = do
+      x <- getSignedInt
+      if | x >= 5 && x <= 127 -> return (x - 5)
+         | otherwise          -> empty
+    -- between -123 and 2.
+    btNeg123and2 :: Get Int
+    btNeg123and2 = do
+      x <- getSignedInt
+      if | x >= -128 && x <= -3 -> return (x + 5)
+         | otherwise            -> empty
+    -- greater than 122.
+    gt122 :: Get Int
+    gt122 = do
+      x <- getSignedInt
+      if x < 0 then empty else
+       for (return 0) 0 (< x) (+ 1) $ twiddle f
+      where
+        f :: Int -> Int -> Int -> Int
+        f x' y' z' = x' .|. (y' `shiftL` (8 * z'))
+    -- less than -123.
+    ltNeg123 :: Get Int
+    ltNeg123 = do
+      x <- getSignedInt
+      for (return (-1)) 0 (< (-x)) (+ 1) $ twiddle f
+      where
+        f :: Int -> Int -> Int -> Int
+        f x' y' z' = (x' .&. complement (255 `shiftL` (8 * z'))) .|. (y' `shiftL` (8 * z'))
 
 getArray :: Get a -> Get (V.Vector a)
 getArray g = getFixnum >>= \len -> V.replicateM len g
@@ -46,52 +79,13 @@ getUnsignedInt :: Get Int
 getUnsignedInt = getWord8 >>= \c -> return $ fromEnum c
 
 getSignedInt :: Get Int
-getSignedInt = do
-  i <- getUnsignedInt
-  return $ if i > 127 then i - 256 else i
-
-getZero :: Get Int
-getZero = 0 <$ tag 0
-
-getBetween5and127 :: Get Int
-getBetween5and127 = do
-  x <- getSignedInt
-  if | x > 4 && x < 128 -> return (x - 5)
-     | otherwise        -> empty
-
-getBetweenNeg128andNeg3 :: Get Int
-getBetweenNeg128andNeg3 = do
-  x <- getSignedInt
-  if | x > -129 && x < -4 -> return (x + 5)
-     | otherwise          -> empty
-
-getGreaterThan122 :: Get Int
-getGreaterThan122 = do
-  x <- getSignedInt
-  if x < 0 then empty else
-   for (return 0) 0 (< x) (+ 1) $ twiddleWith f
-  where
-    f :: Int -> Int -> Int -> Int
-    f x' y' z' = x' .|. (y' `shiftL` (8 * z'))
-
-getLessThanNeg123 :: Get Int
-getLessThanNeg123 = do
-  x <- getSignedInt
-  for (return (-1)) 0 (< (-x)) (+ 1) $ twiddleWith f
-  where
-    f :: Int -> Int -> Int -> Int
-    f x' y' z' = (x' .&. complement (255 `shiftL` (8 * z'))) .|. (y' `shiftL` (8 * z'))
+getSignedInt = getUnsignedInt >>= \i -> return $ if i > 127 then i - 256 else i
 
 tag :: Word8 -> Get ()
-tag t = do
-  b <- getWord8
-  guard $ t == b
+tag t = getWord8 >>= \b -> guard $ t == b
 
-twiddleWith :: (Int -> Int -> Int -> Int) -> (Get Int, Int) -> Get Int
-twiddleWith f (acc, index) = do
-  x <- acc
-  y <- getUnsignedInt
-  return $ f x y index
+twiddle :: (Int -> Int -> Int -> Int) -> (Get Int, Int) -> Get Int
+twiddle f (acc, i) = acc >>= \x -> getUnsignedInt >>= \y -> return $ f x y i
 
 for :: a -> b -> (b -> Bool) -> (b -> b) -> ((a, b) -> a) -> a
 for acc index predicate modifier body =
