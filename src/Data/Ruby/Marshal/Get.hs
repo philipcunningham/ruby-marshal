@@ -25,7 +25,7 @@ getBool :: Get Bool
 getBool = True <$ tag 84 <|> False <$ tag 70
 
 getFixnum :: Get Int
-getFixnum = zero <|> gt4lt128 <|> gtNeg128ltNeg4 <|> gt122 <|> ltNeg123
+getFixnum = zero <|> gt4lt128 <|> gtNeg129ltNeg4 <|> gt122 <|> ltNeg123
   where
     -- zero
     zero :: Get Int
@@ -37,8 +37,8 @@ getFixnum = zero <|> gt4lt128 <|> gtNeg128ltNeg4 <|> gt122 <|> ltNeg123
       if | x > 4 && x < 128 -> return (x - 5)
          | otherwise        -> empty
     -- between -128 and -3
-    gtNeg128ltNeg4 :: Get Int
-    gtNeg128ltNeg4 = do
+    gtNeg129ltNeg4 :: Get Int
+    gtNeg129ltNeg4 = do
       x <- getSignedInt
       if | x > -129 && x < -4 -> return (x + 5)
          | otherwise          -> empty
