@@ -46,9 +46,7 @@ getUnsignedInt :: Get Int
 getUnsignedInt = getWord8 >>= \c -> return $ fromEnum c
 
 getSignedInt :: Get Int
-getSignedInt = do
-  i <- getUnsignedInt
-  return $ if i > 127 then i - 256 else i
+getSignedInt = getUnsignedInt >>= \i -> return $ if i > 127 then i - 256 else i
 
 getZero :: Get Int
 getZero = 0 <$ tag 0
