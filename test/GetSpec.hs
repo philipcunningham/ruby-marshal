@@ -18,6 +18,9 @@ true = BS.pack [84]
 false :: BS.ByteString
 false = BS.pack [70]
 
+float :: BS.ByteString
+float = BS.pack [18, 51, 46, 49, 52, 49, 53, 57, 50, 54, 53, 51, 53, 57]
+
 spec :: Spec
 spec = describe "getNil" $ do
   context "when we have nil" $
@@ -31,3 +34,7 @@ spec = describe "getNil" $ do
   context "when we have false" $
     it "should parse" $ do
       runGet getBool false `shouldBe` Right False
+
+  context "when we have PI" $
+    it "should parse" $ do
+      runGet getFloat float `shouldBe` Right 3.14159265359
