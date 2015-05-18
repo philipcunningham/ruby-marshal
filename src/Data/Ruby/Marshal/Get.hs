@@ -35,13 +35,13 @@ getFixnum = zero <|> bt0and122 <|> btNeg123and2 <|> gt122 <|> ltNeg123
     bt0and122 = do
       x <- getSignedInt
       if | x >= 5 && x <= 127 -> return (x - 5)
-         | otherwise        -> empty
+         | otherwise          -> empty
     -- between -123 and 2.
     btNeg123and2 :: Get Int
     btNeg123and2 = do
       x <- getSignedInt
       if | x >= -128 && x <= -3 -> return (x + 5)
-         | otherwise          -> empty
+         | otherwise            -> empty
     -- greater than 122.
     gt122 :: Get Int
     gt122 = do
