@@ -27,22 +27,22 @@ getBool = True <$ tag 84 <|> False <$ tag 70
 getFixnum :: Get Int
 getFixnum = zero <|> bt0and122 <|> btNeg123and2 <|> gt122 <|> ltNeg123
   where
-    -- 0
+    -- 0.
     zero :: Get Int
     zero = 0 <$ tag 0
-    -- between 0 and 122
+    -- between 0 and 122.
     bt0and122 :: Get Int
     bt0and122 = do
       x <- getSignedInt
       if | x >= 5 && x <= 127 -> return (x - 5)
          | otherwise        -> empty
-    -- between -123 and 2
+    -- between -123 and 2.
     btNeg123and2 :: Get Int
     btNeg123and2 = do
       x <- getSignedInt
       if | x >= -128 && x <= -3 -> return (x + 5)
          | otherwise          -> empty
-    -- greater than 122
+    -- greater than 122.
     gt122 :: Get Int
     gt122 = do
       x <- getSignedInt
@@ -51,7 +51,7 @@ getFixnum = zero <|> bt0and122 <|> btNeg123and2 <|> gt122 <|> ltNeg123
       where
         f :: Int -> Int -> Int -> Int
         f x' y' z' = x' .|. (y' `shiftL` (8 * z'))
-    -- less than -123
+    -- less than -123.
     ltNeg123 :: Get Int
     ltNeg123 = do
       x <- getSignedInt
