@@ -2,15 +2,17 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Data.Ruby.Marshal.Get (
-  getNil, getBool, getFixnum, getArray, getHash, getString
+  getNil, getBool, getFixnum, getArray, getHash, getString, getFloat
 ) where
 
 import Control.Applicative
 
-import Control.Monad       (guard)
-import Data.Serialize.Get  (Get, getBytes, getWord8)
-import Data.Bits           ((.&.), (.|.), complement, shiftL)
-import Data.Word           (Word8)
+import Control.Monad      (guard)
+import Data.Bits          ((.&.), (.|.), complement, shiftL)
+import Data.Serialize.Get (Get, getBytes, getWord8)
+import Data.String.Conv   (toS)
+import Text.Read          (readMaybe)
+import Data.Word          (Word8)
 import Prelude
 
 import qualified Data.ByteString as BS
@@ -26,22 +28,22 @@ getFixnum :: Get Int
 getFixnum = getZero <|> getBetween5and127 <|> getBetweenNeg128andNeg3 <|> getGreaterThan122 <|> getLessThanNeg123
 
 getArray :: Get a -> Get (V.Vector a)
-getArray g = do
-  len <- getFixnum
-  V.replicateM len g
+getArray g = getFixnum >>= \len -> V.replicateM len g
 
 getHash :: Get a -> Get b -> Get (V.Vector (a, b))
-getHash k v = do
-  len <- getFixnum
-  V.replicateM len $ (,) <$> k <*> v
+getHash k v = getFixnum >>= \len -> V.replicateM len $ (,) <$> k <*> v
 
 getString :: Get BS.ByteString
 getString = getFixnum >>= getBytes
 
+getFloat :: Get Double
+getFloat = getFixnum >>= getBytes >>= \str ->
+  case readMaybe . toS $ str of
+    Just x  -> return x
+    Nothing -> empty
+
 getUnsignedInt :: Get Int
-getUnsignedInt = do
-  w <- getWord8
-  return $ fromEnum w
+getUnsignedInt = getWord8 >>= \c -> return $ fromEnum c
 
 getSignedInt :: Get Int
 getSignedInt = do
