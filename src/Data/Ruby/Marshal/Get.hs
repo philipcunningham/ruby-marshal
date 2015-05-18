@@ -41,8 +41,7 @@ getString :: Get BS.ByteString
 getString = getFixnum >>= getBytes
 
 getFloat :: Get Double
-getFloat = do
-  str <- getFixnum >>= getBytes
+getFloat = getFixnum >>= getBytes >>= \str ->
   case readMaybe . toS $ str of
     Just x  -> return x
     Nothing -> empty
