@@ -27,7 +27,7 @@ getBool = True <$ tag 84 <|> False <$ tag 70
 getFixnum :: Get Int
 getFixnum = zero <|> bt0and122 <|> btNeg123and2 <|> gt122 <|> ltNeg123
   where
-    -- zero
+    -- 0
     zero :: Get Int
     zero = 0 <$ tag 0
     -- between 0 and 122
