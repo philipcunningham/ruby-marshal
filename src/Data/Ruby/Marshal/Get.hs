@@ -28,9 +28,7 @@ getFixnum :: Get Int
 getFixnum = getZero <|> getBetween5and127 <|> getBetweenNeg128andNeg3 <|> getGreaterThan122 <|> getLessThanNeg123
 
 getArray :: Get a -> Get (V.Vector a)
-getArray g = do
-  len <- getFixnum
-  V.replicateM len g
+getArray g = getFixnum >>= \len -> V.replicateM len g
 
 getHash :: Get a -> Get b -> Get (V.Vector (a, b))
 getHash k v = do
