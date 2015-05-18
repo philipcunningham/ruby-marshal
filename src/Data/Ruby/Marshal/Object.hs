@@ -24,6 +24,7 @@ data RubyObject = RNil
                   | RArray                      !(Vector RubyObject)
                   | RHash                       !(Vector (RubyObject, RubyObject))
                   | RString                     !BS.ByteString
+                  | RFloat                      !Double
                   | RError                      !Error
                   deriving (Eq, Show)
 
@@ -35,6 +36,7 @@ pattern MArray     = 91
 pattern MHash      = 123
 pattern MIvar      = 73
 pattern MRawString = 34
+pattern MFloat     = 102
 
 getRubyObject :: Get RubyObject
 getRubyObject = do
@@ -51,6 +53,7 @@ getRubyObject = do
      case ivarc of
        MRawString -> RString <$> getString
        _          -> unsupported
+   MFloat  -> RFloat <$> getFloat
    _       -> unsupported
   where
     unsupported = return $ RError Unsupported

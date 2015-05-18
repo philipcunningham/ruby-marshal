@@ -2,15 +2,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Data.Ruby.Marshal.Get (
-  getNil, getBool, getFixnum, getArray, getHash, getString
+  getNil, getBool, getFixnum, getArray, getHash, getString, getFloat
 ) where
 
 import Control.Applicative
 
-import Control.Monad       (guard)
-import Data.Serialize.Get  (Get, getBytes, getWord8)
-import Data.Bits           ((.&.), (.|.), complement, shiftL)
-import Data.Word           (Word8)
+import Control.Monad      (guard)
+import Data.Bits          ((.&.), (.|.), complement, shiftL)
+import Data.Serialize.Get (Get, getBytes, getWord8)
+import Data.String.Conv   (toS)
+import Data.Word          (Word8)
 import Prelude
 
 import qualified Data.ByteString as BS
@@ -37,6 +38,11 @@ getHash k v = do
 
 getString :: Get BS.ByteString
 getString = getFixnum >>= getBytes
+
+getFloat :: Get Double
+getFloat = do
+  str <- getFixnum >>= getBytes
+  return (read . toS $ str)
 
 getUnsignedInt :: Get Int
 getUnsignedInt = do
