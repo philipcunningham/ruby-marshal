@@ -67,13 +67,9 @@ getHash :: Get a -> Get b -> Get (V.Vector (a, b))
 getHash k v = getFixnum >>= \len -> V.replicateM len $ (,) <$> k <*> v
 
 getString :: Get a -> Get BS.ByteString
-getString g = do
-  str <- getByteString
-  _   <- getEncoding
-  return str
+getString g = getByteString <* (getWord8 >> getWord8 >> getByteString >> g)
   where
     getByteString = getFixnum >>= getBytes
-    getEncoding   = getWord8 >> getWord8 >> getByteString >> g
 
 getFloat :: Get Double
 getFloat = getFixnum >>= getBytes >>= \str ->
