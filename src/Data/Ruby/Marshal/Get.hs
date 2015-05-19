@@ -72,19 +72,19 @@ getString g = getByteString <* getEncoding
     getEncoding = getWord8 >> getWord8 >> getByteString >> g
 
 getFloat :: Get Double
-getFloat = getByteString >>= \str ->
-  case readMaybe . toS $ str of
-    Just x  -> return x
+getFloat = getByteString >>= \x ->
+  case readMaybe . toS $ x of
+    Just y  -> return y
     Nothing -> empty
 
 getByteString :: Get BS.ByteString
 getByteString = getFixnum >>= getBytes
 
 getUnsignedInt :: Get Int
-getUnsignedInt = getWord8 >>= \c -> return $ fromEnum c
+getUnsignedInt = getWord8 >>= return . fromEnum
 
 getSignedInt :: Get Int
-getSignedInt = getUnsignedInt >>= \i -> return $ if i > 127 then i - 256 else i
+getSignedInt = getUnsignedInt >>= \x -> return $ if x > 127 then x - 256 else x
 
 tag :: Word8 -> Get ()
 tag t = getWord8 >>= \b -> guard $ t == b
