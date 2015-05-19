@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
@@ -28,29 +29,27 @@ data RubyObject = RNil
                   | RError                      !Error
                   deriving (Eq, Show)
 
-pattern MNil    = 48
-pattern MTrue   = 84
-pattern MFalse  = 70
-pattern MFixnum = 105
-pattern MArray  = 91
-pattern MHash   = 123
-pattern MIvar   = 73
-pattern MString = 34
-pattern MFloat  = 102
+pattern CNil    = 48
+pattern CTrue   = 84
+pattern CFalse  = 70
+pattern CFixnum = 105
+pattern CArray  = 91
+pattern CHash   = 123
+pattern CIvar   = 73
+pattern CString = 34
+pattern CFloat  = 102
 
 getRubyObject :: Get RubyObject
-getRubyObject = do
-  c <- getWord8
-  case c of
-   MNil    -> return RNil
-   MTrue   -> return $ RBool True
-   MFalse  -> return $ RBool False
-   MFixnum -> RFixnum <$> getFixnum
-   MArray  -> RArray  <$> getArray getRubyObject
-   MHash   -> RHash   <$> getHash getRubyObject getRubyObject
-   MIvar   -> getRubyObject
-   MString -> RString <$> getString getRubyObject
-   MFloat  -> RFloat <$> getFloat
-   _       -> unsupported
+getRubyObject = getWord8 >>= \case
+  CNil    -> return RNil
+  CTrue   -> return $ RBool True
+  CFalse  -> return $ RBool False
+  CFixnum -> RFixnum <$> getFixnum
+  CArray  -> RArray  <$> getArray getRubyObject
+  CHash   -> RHash   <$> getHash getRubyObject getRubyObject
+  CIvar   -> getWord8 >>= \case CString -> RString <$> getString getRubyObject
+                                _       -> unsupported
+  CFloat  -> RFloat <$> getFloat
+  _       -> unsupported
   where
     unsupported = return $ RError Unsupported

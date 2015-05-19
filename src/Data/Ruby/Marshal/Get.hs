@@ -67,24 +67,23 @@ getHash :: Get a -> Get b -> Get (V.Vector (a, b))
 getHash k v = getFixnum >>= \len -> V.replicateM len $ (,) <$> k <*> v
 
 getString :: Get a -> Get BS.ByteString
-getString g = do
-  str <- getByteString
-  _   <- getWord8 >> getWord8 >> getByteString >> g
-  return str
-  where
-    getByteString = getFixnum >>= getBytes
+getString g = getByteString <* getEncoding
+  where getEncoding = getWord8 >> getWord8 >> getByteString >> g
 
 getFloat :: Get Double
-getFloat = getFixnum >>= getBytes >>= \str ->
-  case readMaybe . toS $ str of
-    Just x  -> return x
+getFloat = getByteString >>= \x ->
+  case readMaybe . toS $ x of
+    Just y  -> return y
     Nothing -> empty
 
+getByteString :: Get BS.ByteString
+getByteString = getFixnum >>= getBytes
+
 getUnsignedInt :: Get Int
-getUnsignedInt = getWord8 >>= \c -> return $ fromEnum c
+getUnsignedInt = getWord8 >>= return . fromEnum
 
 getSignedInt :: Get Int
-getSignedInt = getUnsignedInt >>= \i -> return $ if i > 127 then i - 256 else i
+getSignedInt = getUnsignedInt >>= \x -> return $ if x > 127 then x - 256 else x
 
 tag :: Word8 -> Get ()
 tag t = getWord8 >>= \b -> guard $ t == b
