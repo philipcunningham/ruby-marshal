@@ -9,10 +9,10 @@ import Control.Applicative
 
 import Control.Monad      (guard)
 import Data.Bits          ((.&.), (.|.), complement, shiftL)
-import Data.Serialize.Get (Get, getBytes, getWord8)
+import Data.Serialize.Get (Get, getBytes, getWord8, lookAhead, skip)
 import Data.String.Conv   (toS)
-import Text.Read          (readMaybe)
 import Data.Word          (Word8)
+import Text.Read          (readMaybe)
 import Prelude
 
 import qualified Data.ByteString as BS
@@ -66,8 +66,19 @@ getArray g = getFixnum >>= \len -> V.replicateM len g
 getHash :: Get a -> Get b -> Get (V.Vector (a, b))
 getHash k v = getFixnum >>= \len -> V.replicateM len $ (,) <$> k <*> v
 
-getString :: Get BS.ByteString
-getString = getFixnum >>= getBytes
+getString :: Get a -> Get BS.ByteString
+getString g = do
+  str <- getByteString
+  c   <- lookAhead (getWord8 >> getWord8)
+  if c == 58 then do
+    _ <- skip 2
+    _ <- getByteString
+    _ <- g
+    return str
+  else
+    return str
+  where
+    getByteString = getFixnum >>= getBytes
 
 getFloat :: Get Double
 getFloat = getFixnum >>= getBytes >>= \str ->
