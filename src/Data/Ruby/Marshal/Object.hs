@@ -28,15 +28,15 @@ data RubyObject = RNil
                   | RError                      !Error
                   deriving (Eq, Show)
 
-pattern MNil       = 48
-pattern MTrue      = 84
-pattern MFalse     = 70
-pattern MFixnum    = 105
-pattern MArray     = 91
-pattern MHash      = 123
-pattern MIvar      = 73
-pattern MRawString = 34
-pattern MFloat     = 102
+pattern MNil    = 48
+pattern MTrue   = 84
+pattern MFalse  = 70
+pattern MFixnum = 105
+pattern MArray  = 91
+pattern MHash   = 123
+pattern MIvar   = 73
+pattern MString = 34
+pattern MFloat  = 102
 
 getRubyObject :: Get RubyObject
 getRubyObject = do
@@ -48,11 +48,8 @@ getRubyObject = do
    MFixnum -> RFixnum <$> getFixnum
    MArray  -> RArray  <$> getArray getRubyObject
    MHash   -> RHash   <$> getHash getRubyObject getRubyObject
-   MIvar   -> do
-     ivarc <- getWord8
-     case ivarc of
-       MRawString -> RString <$> getString
-       _          -> unsupported
+   MIvar   -> getRubyObject
+   MString -> RString <$> getString getRubyObject
    MFloat  -> RFloat <$> getFloat
    _       -> unsupported
   where
