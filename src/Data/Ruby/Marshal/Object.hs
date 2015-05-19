@@ -47,9 +47,8 @@ getRubyObject = getWord8 >>= \case
   CFixnum -> RFixnum <$> getFixnum
   CArray  -> RArray  <$> getArray getRubyObject
   CHash   -> RHash   <$> getHash getRubyObject getRubyObject
-  CIvar   -> getWord8 >>= \case
-    CString -> RString <$> getString getRubyObject
-    _       -> unsupported
+  CIvar   -> getWord8 >>= \case CString -> RString <$> getString getRubyObject
+                                _       -> unsupported
   CFloat  -> RFloat <$> getFloat
   _       -> unsupported
   where
