@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
@@ -48,9 +49,9 @@ getRubyObject = do
    CFixnum -> RFixnum <$> getFixnum
    CArray  -> RArray  <$> getArray getRubyObject
    CHash   -> RHash   <$> getHash getRubyObject getRubyObject
-   CIvar   -> getWord8 >>= \c' ->
-     case c' of CString -> RString <$> getString getRubyObject
-                _       -> unsupported
+   CIvar   -> getWord8 >>= \case
+     CString -> RString <$> getString getRubyObject
+     _       -> unsupported
    CFloat  -> RFloat <$> getFloat
    _       -> unsupported
   where
