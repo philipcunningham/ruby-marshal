@@ -9,7 +9,7 @@ import Control.Applicative
 
 import Control.Monad      (guard)
 import Data.Bits          ((.&.), (.|.), complement, shiftL)
-import Data.Serialize.Get (Get, getBytes, getWord8, lookAhead, skip)
+import Data.Serialize.Get (Get, getBytes, getWord8)
 import Data.String.Conv   (toS)
 import Data.Word          (Word8)
 import Text.Read          (readMaybe)
@@ -69,9 +69,8 @@ getHash k v = getFixnum >>= \len -> V.replicateM len $ (,) <$> k <*> v
 getString :: Get a -> Get BS.ByteString
 getString g = do
   str <- getByteString
-  c   <- lookAhead (getWord8 >> getWord8)
+  c   <- getWord8 >> getWord8
   if c == 58 then do
-    _ <- skip 2
     _ <- getByteString
     _ <- g
     return str
