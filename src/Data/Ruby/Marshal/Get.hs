@@ -68,8 +68,7 @@ getHash k v = getFixnum >>= \len -> V.replicateM len $ (,) <$> k <*> v
 
 getString :: Get a -> Get BS.ByteString
 getString g = getByteString <* getEncoding
-  where
-    getEncoding = getWord8 >> getWord8 >> getByteString >> g
+  where getEncoding = getWord8 >> getWord8 >> getByteString >> g
 
 getFloat :: Get Double
 getFloat = getByteString >>= \x ->
