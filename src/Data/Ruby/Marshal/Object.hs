@@ -49,9 +49,8 @@ getRubyObject = do
    MArray  -> RArray  <$> getArray getRubyObject
    MHash   -> RHash   <$> getHash getRubyObject getRubyObject
    MIvar   -> getWord8 >>= \c' ->
-     case c' of
-       MString -> RString <$> getString getRubyObject
-       _       -> unsupported
+     case c' of MString -> RString <$> getString getRubyObject
+                _       -> unsupported
    MFloat  -> RFloat <$> getFloat
    _       -> unsupported
   where
