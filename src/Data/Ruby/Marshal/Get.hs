@@ -69,13 +69,8 @@ getHash k v = getFixnum >>= \len -> V.replicateM len $ (,) <$> k <*> v
 getString :: Get a -> Get BS.ByteString
 getString g = do
   str <- getByteString
-  c   <- getWord8 >> getWord8
-  if c == 58 then do
-    _ <- getByteString
-    _ <- g
-    return str
-  else
-    return str
+  _   <- getWord8 >> getWord8 >> getByteString >> g
+  return str
   where
     getByteString = getFixnum >>= getBytes
 
