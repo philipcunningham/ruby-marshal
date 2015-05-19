@@ -40,19 +40,17 @@ pattern CString = 34
 pattern CFloat  = 102
 
 getRubyObject :: Get RubyObject
-getRubyObject = do
-  c <- getWord8
-  case c of
-   CNil    -> return RNil
-   CTrue   -> return $ RBool True
-   CFalse  -> return $ RBool False
-   CFixnum -> RFixnum <$> getFixnum
-   CArray  -> RArray  <$> getArray getRubyObject
-   CHash   -> RHash   <$> getHash getRubyObject getRubyObject
-   CIvar   -> getWord8 >>= \case
-     CString -> RString <$> getString getRubyObject
-     _       -> unsupported
-   CFloat  -> RFloat <$> getFloat
-   _       -> unsupported
+getRubyObject = getWord8 >>= \case
+  CNil    -> return RNil
+  CTrue   -> return $ RBool True
+  CFalse  -> return $ RBool False
+  CFixnum -> RFixnum <$> getFixnum
+  CArray  -> RArray  <$> getArray getRubyObject
+  CHash   -> RHash   <$> getHash getRubyObject getRubyObject
+  CIvar   -> getWord8 >>= \case
+    CString -> RString <$> getString getRubyObject
+    _       -> unsupported
+  CFloat  -> RFloat <$> getFloat
+  _       -> unsupported
   where
     unsupported = return $ RError Unsupported
