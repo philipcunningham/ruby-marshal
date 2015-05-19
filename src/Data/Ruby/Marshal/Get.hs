@@ -68,14 +68,15 @@ getHash k v = getFixnum >>= \len -> V.replicateM len $ (,) <$> k <*> v
 
 getString :: Get a -> Get BS.ByteString
 getString g = getByteString <* (getWord8 >> getWord8 >> getByteString >> g)
-  where
-    getByteString = getFixnum >>= getBytes
 
 getFloat :: Get Double
-getFloat = getFixnum >>= getBytes >>= \str ->
+getFloat = getByteString >>= \str ->
   case readMaybe . toS $ str of
     Just x  -> return x
     Nothing -> empty
+
+getByteString :: Get BS.ByteString
+getByteString = getFixnum >>= getBytes
 
 getUnsignedInt :: Get Int
 getUnsignedInt = getWord8 >>= \c -> return $ fromEnum c
