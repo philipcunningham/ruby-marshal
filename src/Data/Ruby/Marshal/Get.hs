@@ -9,7 +9,7 @@ import Control.Applicative
 
 import Control.Monad      (guard)
 import Data.Bits          ((.&.), (.|.), complement, shiftL)
-import Data.Serialize.Get (Get, getBytes, getWord8)
+import Data.Serialize.Get (Get, getBytes, getTwoOf, getWord8)
 import Data.String.Conv   (toS)
 import Data.Word          (Word8)
 import Text.Read          (readMaybe)
@@ -64,7 +64,7 @@ getArray :: Get a -> Get (V.Vector a)
 getArray g = getFixnum >>= \len -> V.replicateM len g
 
 getHash :: Get a -> Get b -> Get (V.Vector (a, b))
-getHash k v = getFixnum >>= \len -> V.replicateM len $ (,) <$> k <*> v
+getHash k v = getFixnum >>= \len -> V.replicateM len $ getTwoOf k v
 
 getString :: Get a -> Get BS.ByteString
 getString g = getByteString <* getEncoding
