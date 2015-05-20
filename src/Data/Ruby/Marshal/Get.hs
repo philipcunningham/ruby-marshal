@@ -7,7 +7,7 @@ module Data.Ruby.Marshal.Get (
 
 import Control.Applicative
 
-import Control.Monad      (guard)
+import Control.Monad      (guard, liftM)
 import Data.Bits          ((.&.), (.|.), complement, shiftL)
 import Data.Serialize.Get (Get, getBytes, getTwoOf, getWord8, label)
 import Data.String.Conv   (toS)
@@ -87,7 +87,7 @@ getRawString = label "RawString" $
 
 getUnsignedInt :: Get Int
 getUnsignedInt = label "UnsignedInt" $
-  getWord8 >>= return . fromEnum
+  liftM fromEnum getWord8
 
 getSignedInt :: Get Int
 getSignedInt = label "SignedInt" $
