@@ -9,7 +9,7 @@ import Control.Applicative
 
 import Control.Monad      (guard)
 import Data.Bits          ((.&.), (.|.), complement, shiftL)
-import Data.Serialize.Get (Get, getBytes, getTwoOf, getWord8)
+import Data.Serialize.Get (Get, getBytes, getTwoOf, getWord8, label)
 import Data.String.Conv   (toS)
 import Data.Word          (Word8)
 import Text.Read          (readMaybe)
@@ -19,13 +19,15 @@ import qualified Data.ByteString as BS
 import qualified Data.Vector     as V
 
 getNil :: Get ()
-getNil = tag 48
+getNil = label "Nil" $ tag 48
 
 getBool :: Get Bool
-getBool = True <$ tag 84 <|> False <$ tag 70
+getBool = label "Bool" $
+  True <$ tag 84 <|> False <$ tag 70
 
 getFixnum :: Get Int
-getFixnum = zero <|> bt0and122 <|> btNeg123and2 <|> gt122 <|> ltNeg123
+getFixnum = label "Fixnum" $
+  zero <|> bt0and122 <|> btNeg123and2 <|> gt122 <|> ltNeg123
   where
     -- 0.
     zero :: Get Int
@@ -61,32 +63,39 @@ getFixnum = zero <|> bt0and122 <|> btNeg123and2 <|> gt122 <|> ltNeg123
         f x' y' z' = (x' .&. complement (255 `shiftL` (8 * z'))) .|. (y' `shiftL` (8 * z'))
 
 getArray :: Get a -> Get (V.Vector a)
-getArray g = getFixnum >>= \len -> V.replicateM len g
+getArray g = label "Array" $
+  getFixnum >>= \len -> V.replicateM len g
 
 getHash :: Get a -> Get b -> Get (V.Vector (a, b))
-getHash k v = getFixnum >>= \len -> V.replicateM len $ getTwoOf k v
+getHash k v = label "Hash" $
+  getFixnum >>= \len -> V.replicateM len $ getTwoOf k v
 
 getString :: Get a -> Get BS.ByteString
-getString g = getByteString <* getEncoding
-  where getEncoding = getWord8 >> getWord8 >> getByteString >> g
+getString g = label "String" $ getRawString <* getEncoding
+  where
+    getEncoding = getWord8 >> getWord8 >> getRawString >> g
 
 getFloat :: Get Double
-getFloat = getByteString >>= \x ->
+getFloat = label "Float" $ getRawString >>= \x ->
   case readMaybe . toS $ x of
     Just y  -> return y
     Nothing -> empty
 
-getByteString :: Get BS.ByteString
-getByteString = getFixnum >>= getBytes
+getRawString :: Get BS.ByteString
+getRawString = label "RawString" $
+  getFixnum >>= getBytes
 
 getUnsignedInt :: Get Int
-getUnsignedInt = getWord8 >>= return . fromEnum
+getUnsignedInt = label "UnsignedInt" $
+  getWord8 >>= return . fromEnum
 
 getSignedInt :: Get Int
-getSignedInt = getUnsignedInt >>= \x -> return $ if x > 127 then x - 256 else x
+getSignedInt = label "SignedInt" $
+  getUnsignedInt >>= \x -> return $ if x > 127 then x - 256 else x
 
 tag :: Word8 -> Get ()
-tag t = getWord8 >>= \b -> guard $ t == b
+tag t = label "Tag" $
+  getWord8 >>= \b -> guard $ t == b
 
 twiddle :: (Int -> Int -> Int -> Int) -> (Get Int, Int) -> Get Int
 twiddle f (acc, i) = acc >>= \x -> getUnsignedInt >>= \y -> return $ f x y i
