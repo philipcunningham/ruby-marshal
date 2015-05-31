@@ -40,19 +40,19 @@ data Error
 data RubyObject
   = RNil
     -- ^ represents @nil@
-  | RBool                       !Bool
+  | RBool                  !Bool
     -- ^ represents @true@ or @false@
-  | RFixnum      {-# UNPACK #-} !Int
+  | RFixnum {-# UNPACK #-} !Int
     -- ^ represents a @Fixnum@
-  | RArray                      !(Vector RubyObject)
+  | RArray                 !(Vector RubyObject)
     -- ^ represents an @Array@
-  | RHash                       !(Vector (RubyObject, RubyObject))
+  | RHash                  !(Vector (RubyObject, RubyObject))
     -- ^ represents an @Hash@
-  | RString                     !BS.ByteString
+  | RString                !BS.ByteString
     -- ^ represents a @String@
-  | RFloat                      !Double
+  | RFloat                 !Double
     -- ^ represents a @Float@
-  | RError                      !Error
+  | RError                 !Error
     -- ^ represents an invalid object
   deriving (Eq, Show)
 
