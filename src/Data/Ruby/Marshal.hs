@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Data.Ruby.Marshal (
   loadVerbose, load,
   module Data.Ruby.Marshal.Get,
