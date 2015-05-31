@@ -1,7 +1,21 @@
-{-# LANGUAGE OverloadedStrings #-}
+--------------------------------------------------------------------
+-- |
+-- Module    : Data.Ruby.Marshal
+-- Copyright : (c) Philip Cunningham, 2015
+-- License   : MIT
+--
+-- Maintainer:  802389+philipcunningham@users.noreply.github.com
+-- Stability :  experimental
+-- Portability: portable
+--
+-- Simple interface to deserialise Ruby Marshal binary.
+--
+--------------------------------------------------------------------
 
 module Data.Ruby.Marshal (
-  loadVerbose, load,
+  -- * Simple interface to deserialise Ruby Marshal binary
+  load, loadVerbose,
+  -- * Re-exported modules
   module Data.Ruby.Marshal.Get,
   module Data.Ruby.Marshal.Object
 ) where
@@ -14,6 +28,17 @@ import Data.Word          (Word8)
 
 import qualified Data.ByteString as BS
 
+-- | Deserialises a subset of Ruby objects serialised with Marshal, Ruby's
+-- built-in binary serialisation format.
+load :: BS.ByteString
+     -- ^ Serialised Ruby object
+     -> Either String RubyObject
+     -- ^ De-serialisation result.
+load x = case loadVerbose x of
+   (Right ((_, _), y)) -> Right y
+   Left z              -> Left  z
+
+-- | Same as 'load' but also provides the Marshal version number.
 loadVerbose :: BS.ByteString -> Either String ((Word8, Word8), RubyObject)
 loadVerbose =
   runGet $ do
@@ -21,8 +46,3 @@ loadVerbose =
     minor  <- getWord8
     object <- getRubyObject
     return ((major, minor), object)
-
-load :: BS.ByteString -> Either String RubyObject
-load x = case loadVerbose x of
-   (Right ((_, _), y)) -> Right y
-   Left z              -> Left  z

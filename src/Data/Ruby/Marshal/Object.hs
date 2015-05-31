@@ -1,7 +1,20 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiWayIf #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
+
+--------------------------------------------------------------------
+-- |
+-- Module    : Data.Ruby.Marshal.Object
+-- Copyright : (c) Philip Cunningham, 2015
+-- License   : MIT
+--
+-- Maintainer:  802389+philipcunningham@users.noreply.github.com
+-- Stability :  experimental
+-- Portability: portable
+--
+-- RubyObject definition.
+--
+--------------------------------------------------------------------
 
 module Data.Ruby.Marshal.Object (
   RubyObject(..),
@@ -17,39 +30,54 @@ import Data.Vector         (Vector)
 
 import qualified Data.ByteString as BS
 
-data Error = Unknown | Unsupported deriving (Eq, Show)
+data Error
+  = Unknown
+    -- ^ represents an unknown Ruby object
+  | Unsupported
+    -- ^ represents an unsupported Ruby object
+  deriving (Eq, Show)
 
-data RubyObject = RNil
-                  | RBool                       !Bool
-                  | RFixnum      {-# UNPACK #-} !Int
-                  | RArray                      !(Vector RubyObject)
-                  | RHash                       !(Vector (RubyObject, RubyObject))
-                  | RString                     !BS.ByteString
-                  | RFloat                      !Double
-                  | RError                      !Error
-                  deriving (Eq, Show)
+data RubyObject
+  = RNil
+    -- ^ represents @nil@
+  | RBool                  !Bool
+    -- ^ represents @true@ or @false@
+  | RFixnum {-# UNPACK #-} !Int
+    -- ^ represents a @Fixnum@
+  | RArray                 !(Vector RubyObject)
+    -- ^ represents an @Array@
+  | RHash                  !(Vector (RubyObject, RubyObject))
+    -- ^ represents an @Hash@
+  | RString                !BS.ByteString
+    -- ^ represents a @String@
+  | RFloat                 !Double
+    -- ^ represents a @Float@
+  | RError                 !Error
+    -- ^ represents an invalid object
+  deriving (Eq, Show)
 
-pattern CNil    = 48
-pattern CTrue   = 84
-pattern CFalse  = 70
-pattern CFixnum = 105
-pattern CArray  = 91
-pattern CHash   = 123
-pattern CIvar   = 73
-pattern CString = 34
-pattern CFloat  = 102
+pattern NilC    = 48
+pattern TrueC   = 84
+pattern FalseC  = 70
+pattern FixnumC = 105
+pattern ArrayC  = 91
+pattern HashC   = 123
+pattern IvarC   = 73
+pattern StringC = 34
+pattern FloatC  = 102
 
+-- | Parses a subset of Ruby objects.
 getRubyObject :: Get RubyObject
 getRubyObject = getWord8 >>= \case
-  CNil    -> return RNil
-  CTrue   -> return $ RBool True
-  CFalse  -> return $ RBool False
-  CFixnum -> RFixnum <$> getFixnum
-  CArray  -> RArray  <$> getArray getRubyObject
-  CHash   -> RHash   <$> getHash getRubyObject getRubyObject
-  CIvar   -> getWord8 >>= \case CString -> RString <$> getString getRubyObject
+  NilC    -> return RNil
+  TrueC   -> return $ RBool True
+  FalseC  -> return $ RBool False
+  FixnumC -> RFixnum <$> getFixnum
+  ArrayC  -> RArray  <$> getArray getRubyObject
+  HashC   -> RHash   <$> getHash getRubyObject getRubyObject
+  IvarC   -> getWord8 >>= \case StringC -> RString <$> getString getRubyObject
                                 _       -> unsupported
-  CFloat  -> RFloat <$> getFloat
+  FloatC  -> RFloat <$> getFloat
   _       -> unsupported
   where
     unsupported = return $ RError Unsupported

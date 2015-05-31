@@ -3,12 +3,13 @@ version:       0.0.1
 synopsis:      Parse a subset of Ruby objects serialised with Marshal.dump.
 description:   Parse a subset of Ruby objects serialised with Marshal.dump.
 homepage:      https://github.com/filib/ruby-marshal
-license:       GPL-2
+license:       MIT
 license-file:  LICENSE
 author:        Philip Cunningham
 maintainer:    802389+philipcunningham@users.noreply.github.com
 category:      Data
 build-type:    Simple
+tested-with:   GHC == 7.8, GHC == 7.10
 cabal-version: >=1.10
 
 Source-repository head
