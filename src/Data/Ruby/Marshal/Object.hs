@@ -51,7 +51,7 @@ data RubyObject
     -- ^ represents an @Hash@
   | RString                !BS.ByteString
     -- ^ represents a @String@
-  | RFloat                 !Double
+  | RFloat {-# UNPACK #-}  !Double
     -- ^ represents a @Float@
   | RError                 !Error
     -- ^ represents an invalid object
@@ -75,6 +75,7 @@ getMarshalVersion = getWord8 >>= \x -> getWord8 >>= \y -> return (x, y)
 getRubyObject :: Get RubyObject
 getRubyObject = getMarshalVersion >> getRuby
   where
+    getRuby :: Get RubyObject
     getRuby = getWord8 >>= \case
       NilC    -> return RNil
       TrueC   -> return $ RBool True
