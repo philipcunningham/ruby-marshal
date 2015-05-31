@@ -17,16 +17,18 @@
 --------------------------------------------------------------------
 
 module Data.Ruby.Marshal.Object (
-  RubyObject(..),
-  getRubyObject
+  getRubyObject,
+  RubyObject(..)
 ) where
 
 import Control.Applicative
 import Data.Ruby.Marshal.Get
 import Prelude
 
+import Data.Serialize      (Serialize(..))
 import Data.Serialize.Get  (Get, getWord8)
 import Data.Vector         (Vector)
+import Data.Word           (Word8)
 
 import qualified Data.ByteString as BS
 
@@ -66,18 +68,26 @@ pattern IvarC   = 73
 pattern StringC = 34
 pattern FloatC  = 102
 
+-- | Parses Marshal version.
+getMarshalVersion :: Get (Word8, Word8)
+getMarshalVersion = getWord8 >>= \x -> getWord8 >>= \y -> return (x, y)
+
 -- | Parses a subset of Ruby objects.
 getRubyObject :: Get RubyObject
-getRubyObject = getWord8 >>= \case
-  NilC    -> return RNil
-  TrueC   -> return $ RBool True
-  FalseC  -> return $ RBool False
-  FixnumC -> RFixnum <$> getFixnum
-  ArrayC  -> RArray  <$> getArray getRubyObject
-  HashC   -> RHash   <$> getHash getRubyObject getRubyObject
-  IvarC   -> getWord8 >>= \case StringC -> RString <$> getString getRubyObject
-                                _       -> unsupported
-  FloatC  -> RFloat <$> getFloat
-  _       -> unsupported
+getRubyObject = getMarshalVersion >> getRuby
   where
-    unsupported = return $ RError Unsupported
+    getRuby = getWord8 >>= \case
+      NilC    -> return RNil
+      TrueC   -> return $ RBool True
+      FalseC  -> return $ RBool False
+      FixnumC -> RFixnum <$> getFixnum
+      ArrayC  -> RArray  <$> getArray getRuby
+      HashC   -> RHash   <$> getHash getRuby getRuby
+      IvarC   -> getWord8 >>= \case StringC -> RString <$> getString getRuby
+                                    _       -> return $ RError Unsupported
+      FloatC  -> RFloat <$> getFloat
+      _       -> return $ RError Unsupported
+
+instance Serialize RubyObject where
+  get = getRubyObject
+  put = error "unsupported operation"
