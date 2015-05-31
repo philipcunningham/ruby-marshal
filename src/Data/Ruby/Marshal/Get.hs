@@ -92,9 +92,9 @@ getHash k v = label "Hash" $
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/String.html String>.
 getString :: Get a -> Get BS.ByteString
-getString g = label "String" $ getRawString <* getEncoding
-  where
-    getEncoding = getWord8 >> getWord8 >> getRawString >> g
+getString g = label "String" $
+  getRawString <* getEncoding -- For now we just throw away the encoding info.
+  where getEncoding = getWord8 >> getWord8 >> getRawString >> g
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Float.html Float>.
 getFloat :: Get Double
@@ -107,13 +107,19 @@ getRawString :: Get BS.ByteString
 getRawString = label "RawString" $
   getFixnum >>= getBytes
 
+getSignedInt :: Get Int
+getSignedInt = label "SignedInt" $
+  getUnsignedInt >>= \x -> return $ if x > 127 then x - 256 else x
+
 getUnsignedInt :: Get Int
 getUnsignedInt = label "UnsignedInt" $
   liftM fromEnum getWord8
 
-getSignedInt :: Get Int
-getSignedInt = label "SignedInt" $
-  getUnsignedInt >>= \x -> return $ if x > 127 then x - 256 else x
+for :: a -> b -> (b -> Bool) -> (b -> b) -> ((a, b) -> a) -> a
+for acc index predicate modifier body =
+  if predicate index then
+    for (body (acc, index)) (modifier $! index) predicate modifier body
+  else acc
 
 tag :: Word8 -> Get ()
 tag t = label "Tag" $
@@ -121,9 +127,3 @@ tag t = label "Tag" $
 
 twiddle :: (Int -> Int -> Int -> Int) -> (Get Int, Int) -> Get Int
 twiddle f (acc, i) = acc >>= \x -> getUnsignedInt >>= \y -> return $ f x y i
-
-for :: a -> b -> (b -> Bool) -> (b -> b) -> ((a, b) -> a) -> a
-for acc index predicate modifier body =
-  if predicate index then
-    for (body (acc, index)) (modifier $! index) predicate modifier body
-  else acc
