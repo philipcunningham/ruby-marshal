@@ -8,12 +8,12 @@
 -- Stability :  experimental
 -- Portability: portable
 --
--- Simple interface to de-serialise Ruby Marshal binary.
+-- Simple interface to deserialise Ruby Marshal binary.
 --
 --------------------------------------------------------------------
 
 module Data.Ruby.Marshal (
-  -- * Simple interface to de-serialise Ruby Marshal binary
+  -- * Simple interface to deserialise Ruby Marshal binary
   load, loadVerbose,
   -- * Re-exported modules
   module Data.Ruby.Marshal.Get,
@@ -28,7 +28,7 @@ import Data.Word          (Word8)
 
 import qualified Data.ByteString as BS
 
--- | De-serialises a subset of Ruby objects serialised with Marshal, Ruby's
+-- | Deserialises a subset of Ruby objects serialised with Marshal, Ruby's
 -- built-in binary serialisation format.
 load :: BS.ByteString
      -- ^ Serialised Ruby object

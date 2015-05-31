@@ -1,6 +1,20 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 
+--------------------------------------------------------------------
+-- |
+-- Module    : Data.Ruby.Marshal.Get
+-- Copyright : (c) Philip Cunningham, 2015
+-- License   : MIT
+--
+-- Maintainer:  802389+philipcunningham@users.noreply.github.com
+-- Stability :  experimental
+-- Portability: portable
+--
+-- Ruby Marshal deserialiser using @Data.Serialize@.
+--
+--------------------------------------------------------------------
+
 module Data.Ruby.Marshal.Get (
   getNil, getBool, getFixnum, getArray, getHash, getString, getFloat
 ) where
@@ -18,13 +32,17 @@ import Prelude
 import qualified Data.ByteString as BS
 import qualified Data.Vector     as V
 
+-- | Deserialises <http://ruby-doc.org/core-2.2.0/NilClass.html nil>.
 getNil :: Get ()
 getNil = label "Nil" $ tag 48
 
+-- | Deserialises <http://ruby-doc.org/core-2.2.0/TrueClass.html true> and
+-- <http://ruby-doc.org/core-2.2.0/FalseClass.html false>.
 getBool :: Get Bool
 getBool = label "Bool" $
   True <$ tag 84 <|> False <$ tag 70
 
+-- | Deserialises <http://ruby-doc.org/core-2.2.0/Fixnum.html Fixnum>.
 getFixnum :: Get Int
 getFixnum = label "Fixnum" $
   zero <|> bt0and122 <|> btNeg123and2 <|> gt122 <|> ltNeg123
@@ -62,19 +80,23 @@ getFixnum = label "Fixnum" $
         f :: Int -> Int -> Int -> Int
         f x' y' z' = (x' .&. complement (255 `shiftL` (8 * z'))) .|. (y' `shiftL` (8 * z'))
 
+-- | Deserialises <http://ruby-doc.org/core-2.2.0/Array.html Array>.
 getArray :: Get a -> Get (V.Vector a)
 getArray g = label "Array" $
   getFixnum >>= \len -> V.replicateM len g
 
+-- | Deserialises <http://ruby-doc.org/core-2.2.0/Hash.html Hash>.
 getHash :: Get a -> Get b -> Get (V.Vector (a, b))
 getHash k v = label "Hash" $
   getFixnum >>= \len -> V.replicateM len $ getTwoOf k v
 
+-- | Deserialises <http://ruby-doc.org/core-2.2.0/String.html String>.
 getString :: Get a -> Get BS.ByteString
 getString g = label "String" $ getRawString <* getEncoding
   where
     getEncoding = getWord8 >> getWord8 >> getRawString >> g
 
+-- | Deserialises <http://ruby-doc.org/core-2.2.0/Float.html Float>.
 getFloat :: Get Double
 getFloat = label "Float" $ getRawString >>= \x ->
   case readMaybe . toS $ x of
