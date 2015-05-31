@@ -23,7 +23,7 @@ module Data.Ruby.Marshal (
 import Data.Ruby.Marshal.Get
 import Data.Ruby.Marshal.Object
 
-import Data.Serialize.Get (runGet)
+import Data.Serialize (decode)
 
 import qualified Data.ByteString as BS
 
@@ -33,4 +33,4 @@ load :: BS.ByteString
      -- ^ Serialised Ruby object
      -> Either String RubyObject
      -- ^ De-serialisation result.
-load = runGet getRubyObject
+load = decode

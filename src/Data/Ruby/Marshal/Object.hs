@@ -17,7 +17,6 @@
 --------------------------------------------------------------------
 
 module Data.Ruby.Marshal.Object (
-  getRubyObject,
   RubyObject(..)
 ) where
 
