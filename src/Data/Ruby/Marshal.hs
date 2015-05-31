@@ -1,6 +1,21 @@
+--------------------------------------------------------------------
+-- |
+-- Module    : Data.Ruby.Marshal
+-- Copyright : (c) Philip Cunningham, 2015
+-- License   : MIT
+--
+-- Maintainer:  802389+philipcunningham@users.noreply.github.com
+-- Stability :  experimental
+-- Portability: portable
+--
+-- Simple interface to de-serialise Ruby Marshal binary.
+--
+--------------------------------------------------------------------
+
 module Data.Ruby.Marshal (
--- * Simple interface to de-serialise Ruby Marshal binary.
+  -- * Simple interface to de-serialise Ruby Marshal binary
   load, loadVerbose,
+  -- * Re-exported modules
   module Data.Ruby.Marshal.Get,
   module Data.Ruby.Marshal.Object
 ) where
