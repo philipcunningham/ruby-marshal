@@ -32,5 +32,5 @@ import qualified Data.ByteString as BS
 load :: BS.ByteString
      -- ^ Serialised Ruby object
      -> Either String RubyObject
-     -- ^ De-serialisation result.
+     -- ^ De-serialisation result
 load = decode
