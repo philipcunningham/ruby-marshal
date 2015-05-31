@@ -1,7 +1,20 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiWayIf #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
+
+--------------------------------------------------------------------
+-- |
+-- Module    : Data.Ruby.Marshal.Object
+-- Copyright : (c) Philip Cunningham, 2015
+-- License   : MIT
+--
+-- Maintainer:  802389+philipcunningham@users.noreply.github.com
+-- Stability :  experimental
+-- Portability: portable
+--
+-- RubyObject definition.
+--
+--------------------------------------------------------------------
 
 module Data.Ruby.Marshal.Object (
   RubyObject(..),
@@ -17,17 +30,31 @@ import Data.Vector         (Vector)
 
 import qualified Data.ByteString as BS
 
-data Error = Unknown | Unsupported deriving (Eq, Show)
+data Error
+  = Unknown
+    -- ^ represents an unknown Ruby object
+  | Unsupported
+    -- ^ represents an unsupported Ruby object
+  deriving (Eq, Show)
 
-data RubyObject = RNil
-                  | RBool                       !Bool
-                  | RFixnum      {-# UNPACK #-} !Int
-                  | RArray                      !(Vector RubyObject)
-                  | RHash                       !(Vector (RubyObject, RubyObject))
-                  | RString                     !BS.ByteString
-                  | RFloat                      !Double
-                  | RError                      !Error
-                  deriving (Eq, Show)
+data RubyObject
+  = RNil
+    -- ^ represents @nil@
+  | RBool                       !Bool
+    -- ^ represents @true@ or @false@
+  | RFixnum      {-# UNPACK #-} !Int
+    -- ^ represents a @Fixnum@
+  | RArray                      !(Vector RubyObject)
+    -- ^ represents an @Array@
+  | RHash                       !(Vector (RubyObject, RubyObject))
+    -- ^ represents an @Hash@
+  | RString                     !BS.ByteString
+    -- ^ represents a @String@
+  | RFloat                      !Double
+    -- ^ represents a @Float@
+  | RError                      !Error
+    -- ^ represents an invalid object
+  deriving (Eq, Show)
 
 pattern CNil    = 48
 pattern CTrue   = 84
@@ -39,6 +66,7 @@ pattern CIvar   = 73
 pattern CString = 34
 pattern CFloat  = 102
 
+-- | Parses a subset of Ruby objects.
 getRubyObject :: Get RubyObject
 getRubyObject = getWord8 >>= \case
   CNil    -> return RNil
