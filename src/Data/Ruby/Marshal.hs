@@ -14,7 +14,7 @@
 
 module Data.Ruby.Marshal (
   -- * Simple interface to deserialise Ruby Marshal binary
-  load, loadVerbose,
+  load,
   -- * Re-exported modules
   module Data.Ruby.Marshal.Get,
   module Data.Ruby.Marshal.Object
@@ -23,8 +23,7 @@ module Data.Ruby.Marshal (
 import Data.Ruby.Marshal.Get
 import Data.Ruby.Marshal.Object
 
-import Data.Serialize.Get (runGet, getWord8)
-import Data.Word          (Word8)
+import Data.Serialize (decode)
 
 import qualified Data.ByteString as BS
 
@@ -34,15 +33,4 @@ load :: BS.ByteString
      -- ^ Serialised Ruby object
      -> Either String RubyObject
      -- ^ De-serialisation result.
-load x = case loadVerbose x of
-   (Right ((_, _), y)) -> Right y
-   Left z              -> Left  z
-
--- | Same as 'load' but also provides the Marshal version number.
-loadVerbose :: BS.ByteString -> Either String ((Word8, Word8), RubyObject)
-loadVerbose =
-  runGet $ do
-    major  <- getWord8
-    minor  <- getWord8
-    object <- getRubyObject
-    return ((major, minor), object)
+load = decode
