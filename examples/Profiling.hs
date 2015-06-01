@@ -12,7 +12,7 @@ import qualified Data.ByteString as BS
 main :: IO ()
 main = do
   dir <- getCurrentDirectory
-  rbs <- BS.readFile (mconcat [dir, "/test/bin/42.bin"])
+  rbs <- BS.readFile (mconcat [dir, "/test/bin/bigArray.bin"])
   putStrLn . show $ load rbs >>= \case
-    RFixnum x -> Just (x * x)
+    RArray xs -> Just $ xs
     _         -> Nothing
