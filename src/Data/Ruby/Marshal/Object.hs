@@ -57,6 +57,7 @@ data RubyObject
     -- ^ represents an invalid object
   deriving (Eq, Show)
 
+-- | Allow easy pattern matching of values.
 pattern NilC    = 48
 pattern TrueC   = 84
 pattern FalseC  = 70
