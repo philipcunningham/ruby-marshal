@@ -31,6 +31,11 @@ import qualified Data.ByteString as BS
 -- built-in binary serialisation format.
 load :: BS.ByteString
      -- ^ Serialised Ruby object
-     -> Either String RubyObject
+     -> Maybe RubyObject
      -- ^ De-serialisation result
-load = decode
+load = fromEitherToMaybe . decode
+
+-- | Converts an Either to a Maybe.
+fromEitherToMaybe :: Either a b -> Maybe b
+fromEitherToMaybe (Left  _) = Nothing
+fromEitherToMaybe (Right x) = Just x
