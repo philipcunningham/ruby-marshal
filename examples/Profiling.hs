@@ -21,6 +21,6 @@ main :: IO ()
 main = do
   dir <- getCurrentDirectory
   rbs <- BS.readFile (mconcat [dir, "/test/bin/bigArray.bin"])
-  putStrLn . show $ load rbs >>= \case
+  print $ load rbs >>= \case
     RArray xs -> Just $ sumFixnum xs
     _         -> Nothing
