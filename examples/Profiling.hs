@@ -10,11 +10,11 @@ import System.Directory  (getCurrentDirectory)
 import qualified Data.ByteString as BS
 import qualified Data.Foldable   as F
 
-sumFixnum :: Vector RubyObject -> Integer
+sumFixnum :: Vector RubyObject -> Int
 sumFixnum xs = F.foldl' (+) 0 $ fmap f xs
   where
-    f :: RubyObject -> Integer
-    f (RFixnum x) = toInteger x
+    f :: RubyObject -> Int
+    f (RFixnum x) = x
 
 main :: IO ()
 main = do
