@@ -2,11 +2,10 @@
 
 module Main where
 
-import Data.Monoid      (mconcat)
-import System.Directory (getCurrentDirectory)
-
+import Data.Monoid       (mconcat)
 import Data.Ruby.Marshal (load, RubyObject(..))
 import Data.Vector       (Vector)
+import System.Directory  (getCurrentDirectory)
 
 import qualified Data.ByteString as BS
 import qualified Data.Foldable   as F
