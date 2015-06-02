@@ -5,14 +5,14 @@ module Main where
 import Data.Monoid      (mconcat)
 import System.Directory (getCurrentDirectory)
 
-import Data.Foldable     (foldr')
 import Data.Ruby.Marshal (load, RubyObject(..))
 import Data.Vector       (Vector)
 
 import qualified Data.ByteString as BS
+import qualified Data.Foldable   as F
 
 sumFixnum :: Vector RubyObject -> Integer
-sumFixnum xs = foldr' (+) 0 $ fmap f xs
+sumFixnum xs = F.foldr' (+) 0 $ fmap f xs
   where
     f :: RubyObject -> Integer
     f (RFixnum x) = toInteger x
