@@ -11,6 +11,12 @@ import Data.Vector       (Vector)
 import qualified Data.ByteString as BS
 import qualified Data.Foldable   as F
 
+loadBigArray :: IO (Maybe RubyObject)
+loadBigArray = do
+  dir <- getCurrentDirectory
+  rbs <- BS.readFile (mconcat [dir, "/test/bin/loadBigArray.bin"])
+  return $ load rbs
+
 sumFixnum :: Vector RubyObject -> Integer
 sumFixnum xs = F.foldr' (+) 0 $ fmap f xs
   where
@@ -19,8 +25,7 @@ sumFixnum xs = F.foldr' (+) 0 $ fmap f xs
 
 main :: IO ()
 main = do
-  dir <- getCurrentDirectory
-  rbs <- BS.readFile (mconcat [dir, "/test/bin/bigArray.bin"])
-  print $ load rbs >>= \case
-    RArray xs -> Just $ sumFixnum xs
-    _         -> Nothing
+  array <- loadBigArray
+  print $ case array of
+    Just (RArray xs) -> Just $ sumFixnum xs
+    _                -> Nothing
