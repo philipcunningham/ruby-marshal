@@ -7,9 +7,13 @@ import System.Directory (getCurrentDirectory)
 
 import Data.Ruby.Marshal (load, RubyObject(..))
 import Data.Vector       (Vector)
+import Debug.Trace       (traceShow)
 
 import qualified Data.ByteString as BS
 import qualified Data.Foldable   as F
+
+debug :: Show a => a -> a
+debug x = traceShow x x
 
 loadBigArray :: IO (Maybe RubyObject)
 loadBigArray = do
@@ -18,7 +22,7 @@ loadBigArray = do
   return $ load rbs
 
 sumFixnum :: Vector RubyObject -> Integer
-sumFixnum xs = F.foldr' (+) 0 $ fmap f xs
+sumFixnum xs = F.foldr' (+) 0 $ (debug (fmap f xs))
   where
     f :: RubyObject -> Integer
     f (RFixnum x) = toInteger x
