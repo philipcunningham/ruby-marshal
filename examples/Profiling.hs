@@ -14,7 +14,7 @@ import qualified Data.Foldable   as F
 loadBigArray :: IO (Maybe RubyObject)
 loadBigArray = do
   dir <- getCurrentDirectory
-  rbs <- BS.readFile (mconcat [dir, "/test/bin/loadBigArray.bin"])
+  rbs <- BS.readFile (mconcat [dir, "/test/bin/bigArray.bin"])
   return $ load rbs
 
 sumFixnum :: Vector RubyObject -> Integer
