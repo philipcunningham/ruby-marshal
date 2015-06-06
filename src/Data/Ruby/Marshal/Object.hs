@@ -90,7 +90,7 @@ getRubyObject = getMarshalVersion >> getRuby
       IvarC   -> getWord8 >>= \case StringC -> RString <$> getString getRuby
                                     _       -> return $ RError Unsupported
       FloatC  -> RFloat <$> getFloat
-      SymbolC -> return $ RError Unsupported
+      SymbolC -> RSymbol <$> getSymbol
       _       -> return $ RError Unsupported
 
 instance Serialize RubyObject where

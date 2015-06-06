@@ -15,7 +15,7 @@
 --------------------------------------------------------------------
 
 module Data.Ruby.Marshal.Get (
-  getNil, getBool, getFixnum, getArray, getHash, getString, getFloat
+  getNil, getBool, getFixnum, getArray, getHash, getString, getFloat, getSymbol
 ) where
 
 import Control.Applicative
@@ -101,6 +101,10 @@ getFloat = label "Float" $ getRawString >>= \x ->
   case readMaybe . toS $ x of
     Just y  -> return y
     Nothing -> empty
+
+-- | Deserialises <http://ruby-doc.org/core-2.2.0/Symbol.html Symbol>.
+getSymbol :: Get BS.ByteString
+getSymbol = label "Symbol" $ getRawString
 
 getRawString :: Get BS.ByteString
 getRawString = label "RawString" $
