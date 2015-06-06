@@ -53,6 +53,8 @@ data RubyObject
     -- ^ represents a @String@
   | RFloat {-# UNPACK #-}  !Double
     -- ^ represents a @Float@
+  | RSymbol                !BS.ByteString
+    -- ^ represents a @Symbol@
   | RError                 !Error
     -- ^ represents an invalid object
   deriving (Eq, Show)
