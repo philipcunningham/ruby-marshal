@@ -42,7 +42,7 @@ import qualified Data.Vector     as V
 -- | Deserialises Marshal version.
 getMarshalVersion :: Get (Word8, Word8)
 getMarshalVersion = label "Marshal Version" $
-  getWord8 >>= \x -> getWord8 >>= \y -> return (x, y)
+  getTwoOf getWord8 getWord8
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/NilClass.html nil>.
 getNil :: Get ()
