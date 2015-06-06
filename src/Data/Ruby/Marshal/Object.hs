@@ -72,17 +72,17 @@ pattern SymbolC = 58
 
 -- | Parses a subset of Ruby objects.
 getRubyObject :: Get RubyObject
-getRubyObject = getMarshalVersion >> getRuby
+getRubyObject = getMarshalVersion >> go
   where
-    getRuby :: Get RubyObject
-    getRuby = getWord8 >>= \case
+    go :: Get RubyObject
+    go = getWord8 >>= \case
       NilC    -> return RNil
       TrueC   -> return $ RBool True
       FalseC  -> return $ RBool False
       FixnumC -> RFixnum <$> getFixnum
-      ArrayC  -> RArray  <$> getArray getRuby
-      HashC   -> RHash   <$> getHash getRuby getRuby
-      IvarC   -> getWord8 >>= \case StringC -> RString <$> getString getRuby
+      ArrayC  -> RArray  <$> getArray go
+      HashC   -> RHash   <$> getHash go go
+      IvarC   -> getWord8 >>= \case StringC -> RString <$> getString go
                                     _       -> return $ RError Unsupported
       FloatC  -> RFloat <$> getFloat
       SymbolC -> RSymbol <$> getSymbol
