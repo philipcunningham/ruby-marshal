@@ -39,9 +39,10 @@ import Prelude
 import qualified Data.ByteString as BS
 import qualified Data.Vector     as V
 
--- | Deserialises version.
+-- | Deserialises Marshal version.
 getMarshalVersion :: Get (Word8, Word8)
-getMarshalVersion = getWord8 >>= \x -> getWord8 >>= \y -> return (x, y)
+getMarshalVersion = label "Marshal Version" $
+  getWord8 >>= \x -> getWord8 >>= \y -> return (x, y)
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/NilClass.html nil>.
 getNil :: Get ()
