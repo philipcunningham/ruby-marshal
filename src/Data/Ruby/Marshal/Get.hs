@@ -15,7 +15,15 @@
 --------------------------------------------------------------------
 
 module Data.Ruby.Marshal.Get (
-  getNil, getBool, getFixnum, getArray, getHash, getString, getFloat, getSymbol
+  getMarshalVersion,
+  getNil,
+  getBool,
+  getFixnum,
+  getArray,
+  getHash,
+  getString,
+  getFloat,
+  getSymbol
 ) where
 
 import Control.Applicative
@@ -30,6 +38,10 @@ import Prelude
 
 import qualified Data.ByteString as BS
 import qualified Data.Vector     as V
+
+-- | Deserialises version.
+getMarshalVersion :: Get (Word8, Word8)
+getMarshalVersion = getWord8 >>= \x -> getWord8 >>= \y -> return (x, y)
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/NilClass.html nil>.
 getNil :: Get ()

@@ -24,10 +24,9 @@ import Control.Applicative
 import Data.Ruby.Marshal.Get
 import Prelude
 
-import Data.Serialize      (Serialize(..))
-import Data.Serialize.Get  (Get, getWord8)
-import Data.Vector         (Vector)
-import Data.Word           (Word8)
+import Data.Serialize     (Serialize(..))
+import Data.Serialize.Get (Get, getWord8)
+import Data.Vector        (Vector)
 
 import qualified Data.ByteString as BS
 
@@ -70,10 +69,6 @@ pattern IvarC   = 73
 pattern StringC = 34
 pattern FloatC  = 102
 pattern SymbolC = 58
-
--- | Parses Marshal version.
-getMarshalVersion :: Get (Word8, Word8)
-getMarshalVersion = getWord8 >>= \x -> getWord8 >>= \y -> return (x, y)
 
 -- | Parses a subset of Ruby objects.
 getRubyObject :: Get RubyObject
