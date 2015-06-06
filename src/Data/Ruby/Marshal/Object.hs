@@ -69,6 +69,7 @@ pattern HashC   = 123
 pattern IvarC   = 73
 pattern StringC = 34
 pattern FloatC  = 102
+pattern SymbolC = 58
 
 -- | Parses Marshal version.
 getMarshalVersion :: Get (Word8, Word8)
