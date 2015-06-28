@@ -117,7 +117,7 @@ getFloat = label "Float" $ getRawString >>= \x ->
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Symbol.html Symbol>.
 getSymbol :: Get BS.ByteString
-getSymbol = label "Symbol" $ getRawString
+getSymbol = label "Symbol" getRawString
 
 getRawString :: Get BS.ByteString
 getRawString = label "RawString" $

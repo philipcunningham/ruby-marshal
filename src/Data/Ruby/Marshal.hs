@@ -33,7 +33,7 @@ load :: BS.ByteString
      -- ^ Serialised Ruby object
      -> Maybe RubyObject
      -- ^ De-serialisation result
-load = fromEitherToMaybe . (runGet getRubyObject)
+load = fromEitherToMaybe . runGet getRubyObject
 
 -- | Converts an Either to a Maybe.
 fromEitherToMaybe :: Either a b -> Maybe b
