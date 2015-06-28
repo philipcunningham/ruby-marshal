@@ -14,7 +14,8 @@ Haskell library to parse a subset of Ruby objects serialised with Marshal.dump.
 - [x] Support `Array` https://github.com/filib/ruby-marshal/issues/1
 - [x] Support `Hash` https://github.com/filib/ruby-marshal/issues/2
 - [x] Support `String` https://github.com/filib/ruby-marshal/issues/3
-- [ ] Support `Symbol` https://github.com/filib/ruby-marshal/issues/4
+- [x] Support `Symbol` https://github.com/filib/ruby-marshal/issues/4
+- [ ] Support `Symlink` https://github.com/filib/ruby-marshal/issues/35
 - [x] Support `Float` https://github.com/filib/ruby-marshal/issues/12
 
 ## Contributing
