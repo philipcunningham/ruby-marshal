@@ -17,6 +17,7 @@
 --------------------------------------------------------------------
 
 module Data.Ruby.Marshal.Object (
+  getRubyObject,
   RubyObject(..)
 ) where
 
@@ -25,11 +26,7 @@ import Data.Ruby.Marshal.Get
 import Data.Ruby.Marshal.Types
 import Prelude
 
-import Data.Serialize     (Serialize(..))
 import Data.Serialize.Get (Get, getWord8)
-import Data.Vector        (Vector)
-
-import qualified Data.ByteString as BS
 
 -- | Parses a subset of Ruby objects.
 getRubyObject :: Get RubyObject
@@ -48,7 +45,3 @@ getRubyObject = getMarshalVersion >> go
       FloatC  -> RFloat <$> getFloat
       SymbolC -> RSymbol <$> getSymbol
       _       -> return $ RError Unsupported
-
-instance Serialize RubyObject where
-  get = getRubyObject
-  put = error "unsupported operation"

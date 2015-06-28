@@ -39,6 +39,7 @@ library
       Data.Ruby.Marshal
     , Data.Ruby.Marshal.Get
     , Data.Ruby.Marshal.Object
+    , Data.Ruby.Marshal.Types
 
 executable Profiling
   build-depends:
