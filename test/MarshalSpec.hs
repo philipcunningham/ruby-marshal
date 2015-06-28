@@ -89,3 +89,8 @@ spec = describe "load" $ do
     it "should parse" $ do
       object <- loadBin "test/bin/float.bin"
       object `shouldBe` Just (RFloat 3.33333)
+
+  context "when we have :hello_haskell" $
+    it "should parse" $ do
+      object <- loadBin "test/bin/symbol.bin"
+      object `shouldBe` Just (RSymbol "hello_haskell")

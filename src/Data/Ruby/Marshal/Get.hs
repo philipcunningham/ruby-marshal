@@ -15,7 +15,15 @@
 --------------------------------------------------------------------
 
 module Data.Ruby.Marshal.Get (
-  getNil, getBool, getFixnum, getArray, getHash, getString, getFloat
+  getMarshalVersion,
+  getNil,
+  getBool,
+  getFixnum,
+  getArray,
+  getHash,
+  getString,
+  getFloat,
+  getSymbol
 ) where
 
 import Control.Applicative
@@ -30,6 +38,11 @@ import Prelude
 
 import qualified Data.ByteString as BS
 import qualified Data.Vector     as V
+
+-- | Deserialises Marshal version.
+getMarshalVersion :: Get (Word8, Word8)
+getMarshalVersion = label "Marshal Version" $
+  getTwoOf getWord8 getWord8
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/NilClass.html nil>.
 getNil :: Get ()
@@ -101,6 +114,10 @@ getFloat = label "Float" $ getRawString >>= \x ->
   case readMaybe . toS $ x of
     Just y  -> return y
     Nothing -> empty
+
+-- | Deserialises <http://ruby-doc.org/core-2.2.0/Symbol.html Symbol>.
+getSymbol :: Get BS.ByteString
+getSymbol = label "Symbol" getRawString
 
 getRawString :: Get BS.ByteString
 getRawString = label "RawString" $
