@@ -1,5 +1,3 @@
-{-# LANGUAGE MultiWayIf #-}
-
 --------------------------------------------------------------------
 -- |
 -- Module    : Data.Ruby.Marshal.Internal.Int
