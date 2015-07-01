@@ -64,14 +64,14 @@ getFixnum = label "Fixnum" $ do
      | x ==  2   -> fromIntegral <$> getWord16le
      | x ==  3   -> fromIntegral <$> getWord24le
      | x ==  4   -> fromIntegral <$> getWord32le
-     | x == -1   -> fromIntegral <$> getNeg
+     | x == -1   -> fromIntegral <$> getNegInt
      | x == -2   -> fromIntegral <$> getInt16le
      | x == -3   -> fromIntegral <$> getInt24le
      | x == -4   -> fromIntegral <$> getInt32le
      | otherwise -> empty
   where
-    getNeg :: Get Int16
-    getNeg = do
+    getNegInt :: Get Int16
+    getNegInt = do
       x <- fromIntegral <$> getInt8
       if x >= 0 && x <= 127 then return (x - 256) else return x
 
