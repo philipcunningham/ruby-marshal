@@ -47,7 +47,7 @@ getWord24le = do
   s <- getBytes 3
   return $! (fromIntegral (s `BS.index` 2) `shiftL` 16) .|.
             (fromIntegral (s `BS.index` 1) `shiftL`  8) .|.
-            (fromIntegral (s `BS.index` 0) )
+             fromIntegral (s `BS.index` 0)
 
 getInt24le :: Get Int32
 getInt24le = fromIntegral <$> getWord24le
