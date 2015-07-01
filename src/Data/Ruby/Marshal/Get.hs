@@ -27,12 +27,11 @@ module Data.Ruby.Marshal.Get (
 ) where
 
 import Control.Applicative
+import Data.Ruby.Marshal.Internal.Int
 
-import Control.Monad      (guard, liftM)
-import Data.Bits          ((.&.), (.|.), complement, shiftL)
-import Data.Serialize.Get (Get, getBytes, getTwoOf, getWord8, label)
+import Control.Monad      (guard)
+import Data.Serialize.Get (Get, getBytes, getTwoOf, label)
 import Data.String.Conv   (toS)
-import Data.Word          (Word8)
 import Text.Read          (readMaybe)
 import Prelude
 
@@ -56,41 +55,25 @@ getBool = label "Bool" $
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Fixnum.html Fixnum>.
 getFixnum :: Get Int
-getFixnum = label "Fixnum" $
-  zero <|> bt0and122 <|> btNeg123and2 <|> gt122 <|> ltNeg123
+getFixnum = label "Fixnum" $ do
+  x <- getInt8
+  if | x ==  0   -> fromIntegral <$> return x
+     | x >=  6   -> fromIntegral <$> return (x - 5)
+     | x <= -6   -> fromIntegral <$> return (x + 5)
+     | x ==  1   -> fromIntegral <$> getWord8
+     | x ==  2   -> fromIntegral <$> getWord16le
+     | x ==  3   -> fromIntegral <$> getWord24le
+     | x ==  4   -> fromIntegral <$> getWord32le
+     | x == -1   -> fromIntegral <$> getNeg
+     | x == -2   -> fromIntegral <$> getInt16le
+     | x == -3   -> fromIntegral <$> getInt24le
+     | x == -4   -> fromIntegral <$> getInt32le
+     | otherwise -> empty
   where
-    -- 0.
-    zero :: Get Int
-    zero = 0 <$ tag 0
-    -- between 0 and 122.
-    bt0and122 :: Get Int
-    bt0and122 = do
-      x <- getSignedInt
-      if | x >= 5 && x <= 127 -> return (x - 5)
-         | otherwise          -> empty
-    -- between -123 and 2.
-    btNeg123and2 :: Get Int
-    btNeg123and2 = do
-      x <- getSignedInt
-      if | x >= -128 && x <= -3 -> return (x + 5)
-         | otherwise            -> empty
-    -- greater than 122.
-    gt122 :: Get Int
-    gt122 = do
-      x <- getSignedInt
-      if x < 0 then empty else
-       for (return 0) 0 (< x) (+ 1) $ twiddle f
-      where
-        f :: Int -> Int -> Int -> Int
-        f x' y' z' = x' .|. (y' `shiftL` (8 * z'))
-    -- less than -123.
-    ltNeg123 :: Get Int
-    ltNeg123 = do
-      x <- getSignedInt
-      for (return (-1)) 0 (< (-x)) (+ 1) $ twiddle f
-      where
-        f :: Int -> Int -> Int -> Int
-        f x' y' z' = (x' .&. complement (255 `shiftL` (8 * z'))) .|. (y' `shiftL` (8 * z'))
+    getNeg :: Get Int16
+    getNeg = do
+      x <- fromIntegral <$> getInt8
+      if x >= 0 && x <= 127 then return (x - 256) else return x
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Array.html Array>.
 getArray :: Get a -> Get (V.Vector a)
@@ -119,27 +102,12 @@ getFloat = label "Float" $ getRawString >>= \x ->
 getSymbol :: Get BS.ByteString
 getSymbol = label "Symbol" getRawString
 
+-- | Gets a raw string.
 getRawString :: Get BS.ByteString
 getRawString = label "RawString" $
   getFixnum >>= getBytes
 
-getSignedInt :: Get Int
-getSignedInt = label "SignedInt" $
-  getUnsignedInt >>= \x -> return $ if x > 127 then x - 256 else x
-
-getUnsignedInt :: Get Int
-getUnsignedInt = label "UnsignedInt" $
-  liftM fromEnum getWord8
-
-for :: a -> b -> (b -> Bool) -> (b -> b) -> ((a, b) -> a) -> a
-for acc index predicate modifier body =
-  if predicate index then
-    for (body (acc, index)) (modifier $! index) predicate modifier body
-  else acc
-
+-- | Guard against invalid input.
 tag :: Word8 -> Get ()
 tag t = label "Tag" $
   getWord8 >>= \b -> guard $ t == b
-
-twiddle :: (Int -> Int -> Int -> Int) -> (Get Int, Int) -> Get Int
-twiddle f (acc, i) = acc >>= \x -> getUnsignedInt >>= \y -> return $ f x y i
