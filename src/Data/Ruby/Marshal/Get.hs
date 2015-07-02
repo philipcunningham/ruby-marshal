@@ -28,12 +28,12 @@ module Data.Ruby.Marshal.Get (
 
 import Control.Applicative
 import Data.Ruby.Marshal.Internal.Int
+import Prelude
 
 import Control.Monad      (guard)
 import Data.Serialize.Get (Get, getBytes, getTwoOf, label)
 import Data.String.Conv   (toS)
 import Text.Read          (readMaybe)
-import Prelude
 
 import qualified Data.ByteString as BS
 import qualified Data.Vector     as V

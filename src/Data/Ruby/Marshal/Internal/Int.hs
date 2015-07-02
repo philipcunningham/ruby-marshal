@@ -26,6 +26,7 @@ module Data.Ruby.Marshal.Internal.Int (
 ) where
 
 import Control.Applicative
+import Prelude
 
 import Data.Bits          ((.|.), shiftL)
 import Data.Int           (Int8, Int16, Int32)
