@@ -33,8 +33,6 @@ data RubyObject
     -- ^ represents an invalid object
   deriving (Eq, Show)
 
-type Cache = Vector RubyObject
-
 -- | Allow easy pattern matching of values.
 pattern NilC    = 48
 pattern TrueC   = 84
