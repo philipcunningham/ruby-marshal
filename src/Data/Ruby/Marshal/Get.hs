@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE MultiWayIf #-}
 
 --------------------------------------------------------------------
@@ -139,8 +140,9 @@ getFixnum = label "Fixnum" $ do
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Array.html Array>.
 getArray :: Get a -> Get (V.Vector a)
-getArray g = label "Array" $
-  getFixnum >>= \len -> V.replicateM len g
+getArray get = label "Array" $ do
+  len <- getFixnum
+  getVec len get (return V.empty)
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Hash.html Hash>.
 getHash :: Get a -> Get b -> Get (V.Vector (a, b))
@@ -163,6 +165,15 @@ getFloat = label "Float" $ getRawString >>= \x ->
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Symbol.html Symbol>.
 getSymbol :: Get BS.ByteString
 getSymbol = label "Symbol" getRawString
+
+-- | Gets a Vector of n elements.
+getVec :: Int -> Get a -> Get (V.Vector a) -> Get (V.Vector a)
+getVec !n !x !y =
+  if | n == 0    -> y
+     | otherwise -> do
+         x' <- x
+         y' <- y
+         getVec (n - 1) x (return $! V.snoc y' x')
 
 -- | Gets a raw string.
 getRawString :: Get BS.ByteString
