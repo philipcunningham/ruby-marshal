@@ -75,6 +75,11 @@ spec = describe "load" $ do
       object <- loadBin "test/bin/stringArray.bin"
       object `shouldBe` Just (RArray $ V.fromList [RString "hello", RString "haskell"])
 
+  context "when we have [:hello, :haskell, :hello, :haskell]" $
+    it "should parse" $ do
+      object <- loadBin "test/bin/symbolArray.bin"
+      object `shouldBe` Just (RArray $ V.fromList [RSymbol "hello", RSymbol "haskell", RSymbol "hello", RSymbol "haskell"])
+
   context "when we have { 0 => false, 1 => true }" $
     it "should parse" $ do
       object <- loadBin "test/bin/fixnumHash.bin"

@@ -1,9 +1,23 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE PatternSynonyms #-}
 
 module Data.Ruby.Marshal.Types where
 
-import Data.Vector (Vector)
+import Control.Applicative
+import Prelude
+
+import Control.Monad.State (lift, MonadState, StateT)
+import Data.Serialize.Get  (Get)
+import Data.Vector         (Vector)
+
 import qualified Data.ByteString as BS
+
+data Cache = Cache {
+    objects :: Vector RubyObject
+    -- ^ object cache.
+  , symbols :: Vector RubyObject
+    -- ^ symbol cache.
+  } deriving Show
 
 data Error
   = Unknown
@@ -11,6 +25,13 @@ data Error
   | Unsupported
     -- ^ represents an unsupported Ruby object
   deriving (Eq, Show)
+
+newtype Marshal a = Marshal {
+    runMarshal :: StateT Cache Get a
+  } deriving (Functor, Applicative, Monad, MonadState Cache)
+
+liftMarshal :: Get a -> Marshal a
+liftMarshal = Marshal . lift
 
 data RubyObject
   = RNil
@@ -34,13 +55,14 @@ data RubyObject
   deriving (Eq, Show)
 
 -- | Allow easy pattern matching of values.
-pattern NilC    = 48
-pattern TrueC   = 84
-pattern FalseC  = 70
-pattern FixnumC = 105
-pattern ArrayC  = 91
-pattern HashC   = 123
-pattern IvarC   = 73
-pattern StringC = 34
-pattern FloatC  = 102
-pattern SymbolC = 58
+pattern NilC     = 48
+pattern TrueC    = 84
+pattern FalseC   = 70
+pattern FixnumC  = 105
+pattern ArrayC   = 91
+pattern HashC    = 123
+pattern IvarC    = 73
+pattern StringC  = 34
+pattern FloatC   = 102
+pattern SymbolC  = 58
+pattern SymlinkC = 59
