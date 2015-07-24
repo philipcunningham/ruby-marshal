@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE MultiWayIf #-}
 
 --------------------------------------------------------------------
@@ -30,97 +29,36 @@ module Data.Ruby.Marshal.Get (
 
 import Control.Applicative
 import Data.Ruby.Marshal.Internal.Int
+import Data.Ruby.Marshal.Types
 import Prelude
 
-import Data.Ruby.Marshal.Types
--- import Control.Monad      (guard)
-import Control.Monad.State
-import Data.Serialize.Get (Get, getBytes, getTwoOf, label)
-import Data.String.Conv   (toS)
-import Text.Read          (readMaybe)
+import Control.Monad       (guard, liftM2)
+import Control.Monad.State (get, gets, put)
+import Data.Serialize.Get  (Get, getBytes, getTwoOf, label)
+import Data.String.Conv    (toS)
+import Text.Read           (readMaybe)
 
 import qualified Data.ByteString as BS
 import qualified Data.Vector     as V
 
 -- | Deserialises Marshal version.
 getMarshalVersion :: Marshal (Word8, Word8)
-getMarshalVersion = liftMarshal (label "Marshal Version" $ (getTwoOf getWord8 getWord8))
+getMarshalVersion = marshalLabel "Marshal Version" $
+  getTwoOf getWord8 getWord8
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/NilClass.html nil>.
 getNil :: Marshal ()
-getNil = liftMarshal $ label "Nil" $ tag 48
+getNil = marshalLabel "Nil" $ tag 48
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/TrueClass.html true> and
 -- <http://ruby-doc.org/core-2.2.0/FalseClass.html false>.
 getBool :: Marshal Bool
-getBool = liftMarshal $ label "Bool" $
+getBool = marshalLabel "Bool" $
   True <$ tag 84 <|> False <$ tag 70
-
--- === Fixnum and long
-
--- "i" represents a signed 32 bit value using a packed format.  One through five
--- bytes follows the type.  The value loaded will always be a Fixnum.  On
--- 32 bit platforms (where the precision of a Fixnum is less than 32 bits)
--- loading large values will cause overflow on CRuby.
-
--- The fixnum type is used to represent both ruby Fixnum objects and the sizes of
--- marshaled arrays, hashes, instance variables and other types.  In the
--- following sections "long" will mean the format described below, which supports
--- full 32 bit precision.
-
--- The first byte has the following special values:
-
--- "\x00"::
---   The value of the integer is 0.  No bytes follow.
-
--- "\x01"::
---   The total size of the integer is two bytes.  The following byte is a
---   positive integer in the range of 0 through 255.  Only values between 123
---   and 255 should be represented this way to save bytes.
-
--- "\xff"::
---   The total size of the integer is two bytes.  The following byte is a
---   negative integer in the range of -1 through -256.
-
--- "\x02"::
---   The total size of the integer is three bytes.  The following two bytes are a
---   positive little-endian integer.
-
--- "\xfe"::
---   The total size of the integer is three bytes.  The following two bytes are a
---   negative little-endian integer.
-
--- "\x03"::
---   The total size of the integer is four bytes.  The following three bytes are
---   a positive little-endian integer.
-
--- "\xfd"::
---   The total size of the integer is two bytes.  The following three bytes are a
---   negative little-endian integer.
-
--- "\x04"::
---   The total size of the integer is five bytes.  The following four bytes are a
---   positive little-endian integer.  For compatibility with 32 bit ruby,
---   only Fixnums less than 1073741824 should be represented this way.  For sizes
---   of stream objects full precision may be used.
-
--- "\xfc"::
---   The total size of the integer is two bytes.  The following four bytes are a
---   negative little-endian integer.  For compatibility with 32 bit ruby,
---   only Fixnums greater than -10737341824 should be represented this way.  For
---   sizes of stream objects full precision may be used.
-
--- Otherwise the first byte is a sign-extended eight-bit value with an offset.
--- If the value is positive the value is determined by subtracting 5 from the
--- value.  If the value is negative the value is determined by adding 5 to the
--- value.
-
--- There are multiple representations for many values.  CRuby always outputs the
--- shortest representation possible.
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Fixnum.html Fixnum>.
 getFixnum :: Marshal Int
-getFixnum = liftMarshal $ label "Fixnum" $ do
+getFixnum = marshalLabel "Fixnum" $ do
   x <- getInt8
   if | x ==  0   -> fromIntegral <$> return x
      | x ==  1   -> fromIntegral <$> getWord8
@@ -143,81 +81,74 @@ getFixnum = liftMarshal $ label "Fixnum" $ do
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Array.html Array>.
 getArray :: Marshal a -> Marshal (V.Vector a)
 getArray g = do
-  len <- getFixnum
-  v <- getVec len g (return V.empty)
-  liftMarshal $ label "Array" $ return v
+  n <- getFixnum
+  x <- V.replicateM n g
+  marshalLabel "Array" $ return x
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Hash.html Hash>.
 getHash :: Marshal a -> Marshal b -> Marshal (V.Vector (a, b))
 getHash k v = do
-  r <- getFixnum >>= \len -> V.replicateM len (liftM2 (,) k v)
-  liftMarshal (label "Hash" $ return r)
+  n <- getFixnum
+  x <- V.replicateM n (liftM2 (,) k v)
+  marshalLabel "Hash" $ return x
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/String.html String>.
 getString :: Marshal a -> Marshal BS.ByteString
 getString g = do
-  r <- getRawString <* getEncoding -- For now we just throw away the encoding info.
-  liftMarshal (label "String" $ return r)
+  x <- getRawString <* getEncoding -- Throw away the encoding info.
+  marshalLabel "String" $ return x
   where
-    getEncoding = do
-      _ <- liftMarshal $ (getWord8 >> getWord8)
-      _ <- getRawString
-      g
+    getEncoding = liftMarshal (getWord8 >> getWord8) >> getRawString >> g
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Float.html Float>.
 getFloat :: Marshal Double
 getFloat = do
-  r <- getRawString >>= \x ->
-    case readMaybe . toS $ x of
-      Just y  -> return y
-      Nothing -> liftMarshal empty
-  liftMarshal (label "Float" $ return r)
+  s <- getRawString
+  x <- case readMaybe . toS $ s of
+    Just float -> return float
+    Nothing    -> fail "getFloat"
+  marshalLabel "Float" $ return x
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Symbol.html Symbol>.
 getSymbol :: Marshal BS.ByteString
 getSymbol = do
-  r <- getRawString
-  cache (RSymbol r)
-  liftMarshal $ label "Symbol" $ return r
+  x <- getRawString
+  writeObject $ RSymbol x
+  marshalLabel "Symbol" $ return x
 
--- TODO: We should patter match on this and insert
--- appropriately Objects or symbols.
-cache :: RubyObject -> Marshal ()
-cache obj = do
-  c <- get
-  let oldS = symbols c
-  let newC = c { symbols = V.snoc oldS obj }
-  put newC
-
-lookupSym :: Int -> Marshal (Maybe RubyObject)
-lookupSym i = do
-  c <- gets symbols
-  return $ c V.!? i
-
+-- | Deserialises <http://ruby-doc.org/core-2.2.0/Symbol.html Symbol>.
 getSymlink :: Marshal BS.ByteString
 getSymlink = do
-  i <- getFixnum
-  maybeObject <- lookupSym i
+  index <- getFixnum
+  maybeObject <- readSymbol index
   case maybeObject of
     Just (RSymbol bs) -> return bs
-    _                 -> fail "getSymlink "
-
--- | Gets a Vector of n elements.
-getVec :: Int -> Marshal a -> Marshal (V.Vector a) -> Marshal (V.Vector a)
-getVec !n !x !y =
-  if | n == 0    -> y
-     | otherwise -> do
-         x' <- x
-         y' <- y
-         getVec (n - 1) x (return $! V.snoc y' x')
+    _                 -> fail "getSymlink"
 
 -- | Gets a raw string.
 getRawString :: Marshal BS.ByteString
 getRawString = do
-  r <- getFixnum >>= (\i -> (liftMarshal $ getBytes i))
-  liftMarshal (label "RawString" $ return r)
+  n <- getFixnum
+  x <- liftMarshal $ getBytes n
+  marshalLabel "RawString" $ return x
+
+marshalLabel :: String -> Get a -> Marshal a
+marshalLabel x y = liftMarshal $ label x y
 
 -- | Guard against invalid input.
 tag :: Word8 -> Get ()
 tag t = label "Tag" $
   getWord8 >>= \b -> guard $ t == b
+
+-- | Look up a symbol in our symbol cache.
+readSymbol :: Int -> Marshal (Maybe RubyObject)
+readSymbol index = gets symbols >>= \symCache ->
+  return $ symCache V.!? index
+
+-- | Write an object to the appropriate cache.
+writeObject :: RubyObject -> Marshal ()
+writeObject object = do
+  cache <- get
+  case object of
+    RSymbol _ -> put $ cache { symbols = V.snoc (symbols cache) object }
+    _         -> put $ cache { objects = V.snoc (objects cache) object }

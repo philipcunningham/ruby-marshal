@@ -4,10 +4,11 @@
 module Data.Ruby.Marshal.Types where
 
 import Control.Applicative
-import Control.Monad.State
 
-import Data.Vector (Vector)
-import Data.Serialize.Get (Get)
+import Control.Monad.State (lift, MonadState, StateT)
+import Data.Serialize.Get  (Get)
+import Data.Vector         (Vector)
+
 import qualified Data.ByteString as BS
 
 data Cache = Cache {
@@ -25,11 +26,8 @@ data Error
   deriving (Eq, Show)
 
 newtype Marshal a = Marshal {
-  runMarshal :: StateT Cache Get a
+    runMarshal :: StateT Cache Get a
   } deriving (Functor, Applicative, Monad, MonadState Cache)
-
--- lift :: Get a -> StateT Cache Get a
--- Marshal :: StateT Cache Get a -> Marshal a
 
 liftMarshal :: Get a -> Marshal a
 liftMarshal = Marshal . lift
