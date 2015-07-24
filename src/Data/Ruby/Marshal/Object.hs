@@ -17,6 +17,7 @@
 --------------------------------------------------------------------
 
 module Data.Ruby.Marshal.Object (
+  emptyCache,
   getRubyObject,
   RubyObject(..)
 ) where
@@ -27,6 +28,12 @@ import Data.Ruby.Marshal.Types
 import Prelude
 
 import Data.Serialize.Get (Get, getWord8)
+
+import qualified Data.Vector as V
+
+-- | Constructs an empty cache to store symbols and objects.
+emptyCache :: Cache
+emptyCache = Cache { symbols = V.empty, objects = V.empty }
 
 -- | Parses a subset of Ruby objects.
 getRubyObject :: Get RubyObject
