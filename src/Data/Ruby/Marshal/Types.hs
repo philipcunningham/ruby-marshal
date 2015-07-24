@@ -4,6 +4,7 @@
 module Data.Ruby.Marshal.Types where
 
 import Control.Applicative
+import Prelude
 
 import Control.Monad.State (lift, MonadState, StateT)
 import Data.Serialize.Get  (Get)
