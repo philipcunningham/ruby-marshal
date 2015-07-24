@@ -70,10 +70,10 @@ spec = describe "load" $ do
       object <- loadBin "test/bin/fixnumArray.bin"
       object `shouldBe` Just (RArray $ V.fromList [RFixnum (-2048), RFixnum (-42), RFixnum 0, RFixnum 42, RFixnum 2048])
 
-  context "when we have ['hello', 'haskell']" $
+  context "when we have ['hello', 'haskell', 'hello', 'haskell']" $
     it "should parse" $ do
       object <- loadBin "test/bin/stringArray.bin"
-      object `shouldBe` Just (RArray $ V.fromList [RString "hello", RString "haskell"])
+      object `shouldBe` Just (RArray $ V.fromList [RIvar (RString "hello", "UTF-8"), RIvar (RString "haskell", "UTF-8"), RIvar (RString "hello", "UTF-8"), RIvar (RString "haskell", "UTF-8")])
 
   context "when we have [:hello, :haskell, :hello, :haskell]" $
     it "should parse" $ do
@@ -88,7 +88,7 @@ spec = describe "load" $ do
   context "when we have 'hello haskell'" $
     it "should parse" $ do
       object <- loadBin "test/bin/rawString.bin"
-      object `shouldBe` Just (RString "hello haskell")
+      object `shouldBe` Just (RIvar (RString "hello haskell", "UTF-8"))
 
   context "when we have 3.33333" $
     it "should parse" $ do

@@ -42,15 +42,16 @@ getRubyObject = getMarshalVersion >> go
   where
     go :: Marshal RubyObject
     go = liftMarshal getWord8 >>= \case
-      NilC    -> return RNil
-      TrueC   -> return $ RBool True
-      FalseC  -> return $ RBool False
-      FixnumC -> RFixnum <$> getFixnum
-      ArrayC  -> RArray  <$> getArray go
-      HashC   -> RHash   <$> getHash go go
-      IvarC   -> liftMarshal getWord8 >>= \case StringC -> RString <$> getString go
-                                                _       -> return $ RError Unsupported
-      FloatC  -> RFloat <$> getFloat
-      SymbolC  -> RSymbol <$> getSymbol
-      SymlinkC -> RSymbol <$> getSymlink
-      _       -> return $ RError Unsupported
+      NilC        -> return RNil
+      TrueC       -> return $ RBool True
+      FalseC      -> return $ RBool False
+      ArrayC      -> RArray  <$> getArray go
+      FixnumC     -> RFixnum <$> getFixnum
+      FloatC      -> RFloat  <$> getFloat
+      HashC       -> RHash   <$> getHash go go
+      IvarC       -> RIvar   <$> getIvar go
+      ObjectLinkC -> RIvar   <$> getObjectLink
+      StringC     -> RString <$> getString
+      SymbolC     -> RSymbol <$> getSymbol
+      SymlinkC    -> RSymbol <$> getSymlink
+      _           -> return $ RError Unsupported

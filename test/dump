@@ -16,7 +16,7 @@ TYPES = {
   "nilArray"    => [nil],
   "boolArray"   => [true, false],
   "fixnumArray" => [-2048, -42, 0, 42, 2048],
-  "stringArray" => ["hello", "haskell"],
+  "stringArray" => ["hello", "haskell", "hello", "haskell"],
   "symbolArray" => [:hello, :haskell, :hello, :haskell],
   "bigArray"    => (-10000..10000).to_a,
   "fixnumHash"  => { 0 => false, 1 => true },

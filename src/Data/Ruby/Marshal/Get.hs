@@ -1,4 +1,6 @@
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
 
 --------------------------------------------------------------------
 -- |
@@ -21,16 +23,18 @@ module Data.Ruby.Marshal.Get (
   getFixnum,
   getArray,
   getHash,
+  getIvar,
   getString,
   getFloat,
   getSymbol,
-  getSymlink
+  getSymlink,
+  getObjectLink
 ) where
 
 import Control.Applicative
 import Data.Ruby.Marshal.Internal.Int
 import Data.Ruby.Marshal.Types
-import Prelude
+import Prelude hiding (length)
 
 import Control.Monad       (guard, liftM2)
 import Control.Monad.State (get, gets, put)
@@ -93,17 +97,38 @@ getHash k v = do
   marshalLabel "Hash" $ return x
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/String.html String>.
-getString :: Marshal a -> Marshal BS.ByteString
-getString g = do
-  x <- getRawString <* getEncoding -- Throw away the encoding info.
-  marshalLabel "String" $ return x
-  where
-    getEncoding = liftMarshal (getWord8 >> getWord8) >> getRawString >> g
+getString :: Marshal BS.ByteString
+getString = do
+  n <- getFixnum
+  x <- liftMarshal $ getBytes n
+  marshalLabel "RawString" $ return x
+
+getIvar :: Marshal RubyObject -> Marshal (RubyObject, BS.ByteString)
+getIvar g = do
+  string <- g
+  _      <- getFixnum
+  symbol <- g
+  denote <- g
+  case symbol of
+    RSymbol "E" -> case denote of
+      RBool True  -> do
+        writeObject $ RIvar (string, "UTF-8")
+        return (string, "UTF-8")
+      RBool False -> do
+        writeObject $ RIvar (string, "UTF-8")
+        return (string, "US-ASCII")
+      _          -> fail "getIvar"
+    RSymbol "encoding" -> case denote of
+      RSymbol enc -> do
+        writeObject $ RIvar (string, enc)
+        return (string, enc)
+      _           -> fail "getIvar"
+    _          -> fail "getIvar"
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Float.html Float>.
 getFloat :: Marshal Double
 getFloat = do
-  s <- getRawString
+  s <- getString
   x <- case readMaybe . toS $ s of
     Just float -> return float
     Nothing    -> fail "getFloat"
@@ -112,7 +137,7 @@ getFloat = do
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Symbol.html Symbol>.
 getSymbol :: Marshal BS.ByteString
 getSymbol = do
-  x <- getRawString
+  x <- getString
   writeObject $ RSymbol x
   marshalLabel "Symbol" $ return x
 
@@ -125,13 +150,16 @@ getSymlink = do
     Just (RSymbol bs) -> return bs
     _                 -> fail "getSymlink"
 
--- | Gets a raw string.
-getRawString :: Marshal BS.ByteString
-getRawString = do
-  n <- getFixnum
-  x <- liftMarshal $ getBytes n
-  marshalLabel "RawString" $ return x
+-- | Deserialises <http://ruby-doc.org/core-2.2.0/Symbol.html Symbol>.
+getObjectLink :: Marshal (RubyObject, BS.ByteString)
+getObjectLink = do
+  index <- getFixnum
+  maybeObject <- readObject index
+  case maybeObject of
+    Just (RIvar x) -> return x
+    _              -> fail "getObjectLink"
 
+-- | Lift label into Marshal monad.
 marshalLabel :: String -> Get a -> Marshal a
 marshalLabel x y = liftMarshal $ label x y
 
@@ -139,6 +167,11 @@ marshalLabel x y = liftMarshal $ label x y
 tag :: Word8 -> Get ()
 tag t = label "Tag" $
   getWord8 >>= \b -> guard $ t == b
+
+-- | Look up object in our object cache.
+readObject :: Int -> Marshal (Maybe RubyObject)
+readObject index = gets objects >>= \objectCache ->
+  return $ objectCache V.!? index
 
 -- | Look up a symbol in our symbol cache.
 readSymbol :: Int -> Marshal (Maybe RubyObject)
