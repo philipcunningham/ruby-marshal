@@ -5,6 +5,13 @@ module Data.Ruby.Marshal.Types where
 import Data.Vector (Vector)
 import qualified Data.ByteString as BS
 
+data Cache = Cache {
+    objects :: Vector RubyObject
+    -- ^ object cache.
+  , symbols :: Vector RubyObject
+    -- ^ symbol cache.
+  } deriving Show
+
 data Error
   = Unknown
     -- ^ represents an unknown Ruby object
