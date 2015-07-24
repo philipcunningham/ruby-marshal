@@ -20,6 +20,7 @@ module Data.Ruby.Marshal (
   module Data.Ruby.Marshal.Object
 ) where
 
+import Control.Monad.State
 import Data.Ruby.Marshal.Get
 import Data.Ruby.Marshal.Object
 
@@ -33,7 +34,10 @@ load :: BS.ByteString
      -- ^ Serialised Ruby object
      -> Maybe RubyObject
      -- ^ De-serialisation result
-load = fromEitherToMaybe . runGet getRubyObject
+load x = fromEitherToMaybe $ do
+  -- evalStateT :: Monad m => StateT s m a -> s -> m a
+  let v = evalStateT (runMarshal getRubyObject) emptyCache
+  runGet v x
 
 -- | Converts an Either to a Maybe.
 fromEitherToMaybe :: Either a b -> Maybe b

@@ -19,7 +19,8 @@
 module Data.Ruby.Marshal.Object (
   emptyCache,
   getRubyObject,
-  RubyObject(..)
+  RubyObject(..),
+  Marshal(..)
 ) where
 
 import Control.Applicative
@@ -27,7 +28,7 @@ import Data.Ruby.Marshal.Get
 import Data.Ruby.Marshal.Types
 import Prelude
 
-import Data.Serialize.Get (Get, getWord8)
+import Data.Serialize.Get (getWord8)
 
 import qualified Data.Vector as V
 
@@ -36,19 +37,20 @@ emptyCache :: Cache
 emptyCache = Cache { symbols = V.empty, objects = V.empty }
 
 -- | Parses a subset of Ruby objects.
-getRubyObject :: Get RubyObject
+getRubyObject :: Marshal RubyObject
 getRubyObject = getMarshalVersion >> go
   where
-    go :: Get RubyObject
-    go = getWord8 >>= \case
+    go :: Marshal RubyObject
+    go = (liftMarshal getWord8) >>= \case
       NilC    -> return RNil
       TrueC   -> return $ RBool True
       FalseC  -> return $ RBool False
       FixnumC -> RFixnum <$> getFixnum
       ArrayC  -> RArray  <$> getArray go
       HashC   -> RHash   <$> getHash go go
-      IvarC   -> getWord8 >>= \case StringC -> RString <$> getString go
-                                    _       -> return $ RError Unsupported
+      IvarC   -> (liftMarshal getWord8) >>= \case StringC -> RString <$> getString go
+                                                  _       -> return $ RError Unsupported
       FloatC  -> RFloat <$> getFloat
-      SymbolC -> RSymbol <$> getSymbol
+      SymbolC  -> RSymbol <$> getSymbol
+      SymlinkC -> RSymbol <$> getSymlink
       _       -> return $ RError Unsupported

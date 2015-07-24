@@ -24,14 +24,17 @@ module Data.Ruby.Marshal.Get (
   getHash,
   getString,
   getFloat,
-  getSymbol
+  getSymbol,
+  getSymlink
 ) where
 
 import Control.Applicative
 import Data.Ruby.Marshal.Internal.Int
 import Prelude
 
-import Control.Monad      (guard)
+import Data.Ruby.Marshal.Types
+-- import Control.Monad      (guard)
+import Control.Monad.State
 import Data.Serialize.Get (Get, getBytes, getTwoOf, label)
 import Data.String.Conv   (toS)
 import Text.Read          (readMaybe)
@@ -40,18 +43,17 @@ import qualified Data.ByteString as BS
 import qualified Data.Vector     as V
 
 -- | Deserialises Marshal version.
-getMarshalVersion :: Get (Word8, Word8)
-getMarshalVersion = label "Marshal Version" $
-  getTwoOf getWord8 getWord8
+getMarshalVersion :: Marshal (Word8, Word8)
+getMarshalVersion = liftMarshal (label "Marshal Version" $ (getTwoOf getWord8 getWord8))
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/NilClass.html nil>.
-getNil :: Get ()
-getNil = label "Nil" $ tag 48
+getNil :: Marshal ()
+getNil = liftMarshal $ label "Nil" $ tag 48
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/TrueClass.html true> and
 -- <http://ruby-doc.org/core-2.2.0/FalseClass.html false>.
-getBool :: Get Bool
-getBool = label "Bool" $
+getBool :: Marshal Bool
+getBool = liftMarshal $ label "Bool" $
   True <$ tag 84 <|> False <$ tag 70
 
 -- === Fixnum and long
@@ -117,8 +119,8 @@ getBool = label "Bool" $
 -- shortest representation possible.
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Fixnum.html Fixnum>.
-getFixnum :: Get Int
-getFixnum = label "Fixnum" $ do
+getFixnum :: Marshal Int
+getFixnum = liftMarshal $ label "Fixnum" $ do
   x <- getInt8
   if | x ==  0   -> fromIntegral <$> return x
      | x ==  1   -> fromIntegral <$> getWord8
@@ -134,40 +136,74 @@ getFixnum = label "Fixnum" $ do
      | otherwise -> empty
   where
     getNegInt16 :: Get Int16
-    getNegInt16 = do
+    getNegInt16 =  do
       x <- fromIntegral <$> getInt8
       if x >= 0 && x <= 127 then return (x - 256) else return x
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Array.html Array>.
-getArray :: Get a -> Get (V.Vector a)
-getArray get = label "Array" $ do
+getArray :: Marshal a -> Marshal (V.Vector a)
+getArray g = do
   len <- getFixnum
-  getVec len get (return V.empty)
+  v <- getVec len g (return V.empty)
+  liftMarshal $ label "Array" $ return v
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Hash.html Hash>.
-getHash :: Get a -> Get b -> Get (V.Vector (a, b))
-getHash k v = label "Hash" $
-  getFixnum >>= \len -> V.replicateM len $ getTwoOf k v
+getHash :: Marshal a -> Marshal b -> Marshal (V.Vector (a, b))
+getHash k v = do
+  r <- getFixnum >>= \len -> V.replicateM len (liftM2 (,) k v)
+  liftMarshal (label "Hash" $ return r)
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/String.html String>.
-getString :: Get a -> Get BS.ByteString
-getString g = label "String" $
-  getRawString <* getEncoding -- For now we just throw away the encoding info.
-  where getEncoding = getWord8 >> getWord8 >> getRawString >> g
+getString :: Marshal a -> Marshal BS.ByteString
+getString g = do
+  r <- getRawString <* getEncoding -- For now we just throw away the encoding info.
+  liftMarshal (label "String" $ return r)
+  where
+    getEncoding = do
+      _ <- liftMarshal $ (getWord8 >> getWord8)
+      _ <- getRawString
+      g
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Float.html Float>.
-getFloat :: Get Double
-getFloat = label "Float" $ getRawString >>= \x ->
-  case readMaybe . toS $ x of
-    Just y  -> return y
-    Nothing -> empty
+getFloat :: Marshal Double
+getFloat = do
+  r <- getRawString >>= \x ->
+    case readMaybe . toS $ x of
+      Just y  -> return y
+      Nothing -> liftMarshal empty
+  liftMarshal (label "Float" $ return r)
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Symbol.html Symbol>.
-getSymbol :: Get BS.ByteString
-getSymbol = label "Symbol" getRawString
+getSymbol :: Marshal BS.ByteString
+getSymbol = do
+  r <- getRawString
+  cache (RSymbol r)
+  liftMarshal $ label "Symbol" $ return r
+
+-- TODO: We should patter match on this and insert
+-- appropriately Objects or symbols.
+cache :: RubyObject -> Marshal ()
+cache obj = do
+  c <- get
+  let oldS = symbols c
+  let newC = c { symbols = V.snoc oldS obj }
+  put newC
+
+lookupSym :: Int -> Marshal (Maybe RubyObject)
+lookupSym i = do
+  c <- gets symbols
+  return $ c V.!? i
+
+getSymlink :: Marshal BS.ByteString
+getSymlink = do
+  i <- getFixnum
+  maybeObject <- lookupSym i
+  case maybeObject of
+    Just (RSymbol bs) -> return bs
+    _                 -> fail "getSymlink "
 
 -- | Gets a Vector of n elements.
-getVec :: Int -> Get a -> Get (V.Vector a) -> Get (V.Vector a)
+getVec :: Int -> Marshal a -> Marshal (V.Vector a) -> Marshal (V.Vector a)
 getVec !n !x !y =
   if | n == 0    -> y
      | otherwise -> do
@@ -176,9 +212,10 @@ getVec !n !x !y =
          getVec (n - 1) x (return $! V.snoc y' x')
 
 -- | Gets a raw string.
-getRawString :: Get BS.ByteString
-getRawString = label "RawString" $
-  getFixnum >>= getBytes
+getRawString :: Marshal BS.ByteString
+getRawString = do
+  r <- getFixnum >>= (\i -> (liftMarshal $ getBytes i))
+  liftMarshal (label "RawString" $ return r)
 
 -- | Guard against invalid input.
 tag :: Word8 -> Get ()
