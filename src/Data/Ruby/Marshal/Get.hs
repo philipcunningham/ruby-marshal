@@ -112,16 +112,19 @@ getIvar g = do
   case symbol of
     RSymbol "E" -> case denote of
       RBool True  -> do
-        writeObject $ RIvar (string, "UTF-8")
-        return (string, "UTF-8")
+        let result = (string, "UTF-8")
+        writeObject $ RIvar result
+        return result
       RBool False -> do
-        writeObject $ RIvar (string, "US-ASCII")
-        return (string, "US-ASCII")
+        let result = (string, "US-ASCII")
+        writeObject $ RIvar result
+        return result
       _          -> fail "getIvar"
     RSymbol "encoding" -> case denote of
       RSymbol enc -> do
-        writeObject $ RIvar (string, enc)
-        return (string, enc)
+        let result = (string, enc)
+        writeObject $ RIvar result
+        return result
       _           -> fail "getIvar"
     _          -> fail "getIvar"
 
