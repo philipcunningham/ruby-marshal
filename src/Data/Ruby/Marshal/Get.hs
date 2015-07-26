@@ -111,22 +111,18 @@ getIvar g = do
   denote <- g
   case symbol of
     RSymbol "E" -> case denote of
-      RBool True -> do
-        let result = (string, "UTF-8")
-        writeObject $ RIvar result
-        return result
-      RBool False -> do
-        let result = (string, "US-ASCII")
-        writeObject $ RIvar result
-        return result
-      _          -> fail "getIvar: encoding should be followed by bool"
+      RBool True  -> cacheAndReturn string "UTF-8"
+      RBool False -> cacheAndReturn string "US-ASCII"
+      _           -> fail "getIvar: encoding should be followed by bool"
     RSymbol "encoding" -> case denote of
-      RSymbol enc -> do
-        let result = (string, enc)
-        writeObject $ RIvar result
-        return result
+      RSymbol enc -> cacheAndReturn string enc
       _           -> fail "getIvar: encoding should be followed by symbol"
     _          -> fail "getIvar: invalid ivar"
+  where
+    cacheAndReturn string enc = do
+      let result = (string, enc)
+      writeObject $ RIvar result
+      return result
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Float.html Float>.
 getFloat :: Marshal Double
