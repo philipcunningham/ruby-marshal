@@ -153,7 +153,7 @@ getIvar g = do
   where
     cacheAndReturn string enc = do
       let result = (string, enc)
-      writeObject $ RIvar result
+      writeCache $ RIvar result
       marshalLabel "IVar" $ return result
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Symbol.html Symbol>.
@@ -176,7 +176,7 @@ getString = do
 getSymbol :: Marshal BS.ByteString
 getSymbol = do
   x <- getString
-  writeObject $ RSymbol x
+  writeCache $ RSymbol x
   marshalLabel "Symbol" $ return x
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Symbol.html Symbol>.
@@ -211,8 +211,8 @@ readSymbol index = gets _symbols >>= \symbolCache ->
   return $ symbolCache V.!? index
 
 -- | Write an object to the appropriate cache.
-writeObject :: RubyObject -> Marshal ()
-writeObject object = do
+writeCache :: RubyObject -> Marshal ()
+writeCache object = do
   cache <- get
   case object of
     RIvar   _ -> put $ cache { _objects = V.snoc (_objects cache) object }
