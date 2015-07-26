@@ -45,7 +45,6 @@ library
 test-suite spec
   ghc-options:
     -Wall
-    -Werror
   hs-source-dirs:
     src, test
   build-depends:
