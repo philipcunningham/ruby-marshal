@@ -26,7 +26,7 @@ module Data.Ruby.Marshal.Get (
   , getFixnum
   , getFloat
   , getHash
-  , getIvar
+  , getIVar
   , getObjectLink
   , getString
   , getSymbol
@@ -69,8 +69,8 @@ getRubyObject = getMarshalVersion >> go
       FixnumC     -> RFixnum <$> getFixnum
       FloatC      -> RFloat  <$> getFloat
       HashC       -> RHash   <$> getHash go go
-      IvarC       -> RIvar   <$> getIvar go
-      ObjectLinkC -> RIvar   <$> getObjectLink
+      IVarC       -> RIVar   <$> getIVar go
+      ObjectLinkC -> RIVar   <$> getObjectLink
       StringC     -> RString <$> getString
       SymbolC     -> RSymbol <$> getSymbol
       SymlinkC    -> RSymbol <$> getSymlink
@@ -135,8 +135,8 @@ getHash k v = do
   marshalLabel "Hash" $ return x
 
 -- | Deserialises <http://docs.ruby-lang.org/en/2.1.0/marshal_rdoc.html#label-Instance+Variables Instance Variables>.
-getIvar :: Marshal RubyObject -> Marshal (RubyObject, BS.ByteString)
-getIvar g = do
+getIVar :: Marshal RubyObject -> Marshal (RubyObject, BS.ByteString)
+getIVar g = do
   string <- g
   _      <- getFixnum
   symbol <- g
@@ -145,15 +145,15 @@ getIvar g = do
     RSymbol "E" -> case denote of
       RBool True  -> cacheAndReturn string "UTF-8"
       RBool False -> cacheAndReturn string "US-ASCII"
-      _           -> fail "getIvar: should be followed by bool"
+      _           -> fail "getIVar: should be followed by bool"
     RSymbol "encoding" -> case denote of
       RString enc -> cacheAndReturn string enc
-      _           -> fail "getIvar: should be followed by string"
-    _          -> fail "getIvar: invalid ivar"
+      _           -> fail "getIVar: should be followed by string"
+    _          -> fail "getIVar: invalid ivar"
   where
     cacheAndReturn string enc = do
       let result = (string, enc)
-      writeCache $ RIvar result
+      writeCache $ RIVar result
       marshalLabel "IVar" $ return result
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Symbol.html Symbol>.
@@ -162,7 +162,7 @@ getObjectLink = do
   index <- getFixnum
   maybeObject <- readObject index
   case maybeObject of
-    Just (RIvar x) -> return x
+    Just (RIVar x) -> return x
     _              -> fail "getObjectLink"
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/String.html String>.
@@ -215,6 +215,6 @@ writeCache :: RubyObject -> Marshal ()
 writeCache object = do
   cache <- get
   case object of
-    RIvar   _ -> put $ cache { _objects = V.snoc (_objects cache) object }
+    RIVar   _ -> put $ cache { _objects = V.snoc (_objects cache) object }
     RSymbol _ -> put $ cache { _symbols = V.snoc (_symbols cache) object }
     _         -> return ()
