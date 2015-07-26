@@ -87,8 +87,18 @@ spec = describe "load" $ do
 
   context "when we have 'hello haskell'" $
     it "should parse" $ do
-      object <- loadBin "test/bin/rawString.bin"
+      object <- loadBin "test/bin/UTF_8_String.bin"
       object `shouldBe` Just (RIvar (RString "hello haskell", "UTF-8"))
+
+  context "when we have 'hello haskell' in US-ASCII" $
+    it "should parse" $ do
+      object <- loadBin "test/bin/US_ASCII_String.bin"
+      object `shouldBe` Just (RIvar (RString "hello haskell", "US-ASCII"))
+
+  context "when we have 'hello haskell' in SHIFT_JIS" $
+    it "should parse" $ do
+      object <- loadBin "test/bin/Shift_JIS_String.bin"
+      object `shouldBe` Just (RIvar (RString "hello haskell", "Shift_JIS"))
 
   context "when we have 3.33333" $
     it "should parse" $ do

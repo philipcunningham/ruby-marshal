@@ -103,6 +103,7 @@ getString = do
   x <- liftMarshal $ getBytes n
   marshalLabel "RawString" $ return x
 
+-- | Deserialises <http://docs.ruby-lang.org/en/2.1.0/marshal_rdoc.html#label-Instance+Variables Instance Variables>.
 getIvar :: Marshal RubyObject -> Marshal (RubyObject, BS.ByteString)
 getIvar g = do
   string <- g
@@ -113,16 +114,16 @@ getIvar g = do
     RSymbol "E" -> case denote of
       RBool True  -> cacheAndReturn string "UTF-8"
       RBool False -> cacheAndReturn string "US-ASCII"
-      _           -> fail "getIvar: encoding should be followed by bool"
+      _           -> fail "getIvar: should be followed by bool"
     RSymbol "encoding" -> case denote of
-      RSymbol enc -> cacheAndReturn string enc
-      _           -> fail "getIvar: encoding should be followed by symbol"
+      RString enc -> cacheAndReturn string enc
+      _           -> fail "getIvar: should be followed by symbol"
     _          -> fail "getIvar: invalid ivar"
   where
     cacheAndReturn string enc = do
       let result = (string, enc)
       writeObject $ RIvar result
-      return result
+      marshalLabel "IVar" $ return result
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Float.html Float>.
 getFloat :: Marshal Double
