@@ -33,7 +33,7 @@ import qualified Data.Vector     as V
 
 -- | Constructs an empty cache to store symbols and objects.
 emptyCache :: Cache
-emptyCache = Cache { symbols = V.empty, objects = V.empty }
+emptyCache = Cache { _symbols = V.empty, _objects = V.empty }
 
 -- | Deserialises a subset of Ruby objects serialised with Marshal, Ruby's
 -- built-in binary serialisation format.

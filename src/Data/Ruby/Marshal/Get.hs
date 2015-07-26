@@ -169,12 +169,12 @@ tag t = label "Tag" $
 
 -- | Look up object in our object cache.
 readObject :: Int -> Marshal (Maybe RubyObject)
-readObject index = gets objects >>= \objectCache ->
+readObject index = gets _objects >>= \objectCache ->
   return $ objectCache V.!? index
 
 -- | Look up a symbol in our symbol cache.
 readSymbol :: Int -> Marshal (Maybe RubyObject)
-readSymbol index = gets symbols >>= \symCache ->
+readSymbol index = gets _symbols >>= \symCache ->
   return $ symCache V.!? index
 
 -- | Write an object to the appropriate cache.
@@ -182,5 +182,5 @@ writeObject :: RubyObject -> Marshal ()
 writeObject object = do
   cache <- get
   case object of
-    RSymbol _ -> put $ cache { symbols = V.snoc (symbols cache) object }
-    _         -> put $ cache { objects = V.snoc (objects cache) object }
+    RSymbol _ -> put $ cache { _symbols = V.snoc (_symbols cache) object }
+    _         -> put $ cache { _objects = V.snoc (_objects cache) object }

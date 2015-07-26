@@ -13,9 +13,9 @@ import Data.Vector         (Vector)
 import qualified Data.ByteString as BS
 
 data Cache = Cache {
-    objects :: Vector RubyObject
+    _objects :: Vector RubyObject
     -- ^ object cache.
-  , symbols :: Vector RubyObject
+  , _symbols :: Vector RubyObject
     -- ^ symbol cache.
   } deriving Show
 
