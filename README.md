@@ -6,6 +6,20 @@
 
 Haskell library to parse a subset of Ruby objects serialised with Marshal.dump.
 
+## Supported Types
+
+- `NilClass`
+- `TrueClass | FalseClass`
+- `Array`
+- `Fixnum`
+- `Float`
+- `Hash`
+- `String`
+- `Symbol`
+
+If you would like to add support for another type, please feel free to
+create an issue or open a pull request using the guidelines below.
+
 ## Usage
 
 ### Example
@@ -37,20 +51,6 @@ main = do
     Just cookie -> lookupId cookie
     Nothing     -> Nothing
 ```
-
-## Supported Types
-
-- `NilClass`
-- `TrueClass | FalseClass`
-- `Array`
-- `Fixnum`
-- `Float`
-- `Hash`
-- `String`
-- `Symbol`
-
-If you would like to add support for another type, please feel free to
-create an issue or open a pull request using the guidelines below.
 
 ## Contributing
 
