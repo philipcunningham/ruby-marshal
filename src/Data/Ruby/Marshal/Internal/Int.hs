@@ -13,16 +13,16 @@
 --------------------------------------------------------------------
 
 module Data.Ruby.Marshal.Internal.Int (
-  getWord8,
-  getInt8,
-  getWord16le,
-  getInt16le,
-  getWord24le,
-  getInt24le,
-  getWord32le,
-  getInt32le,
-  Int16,
-  Word8
+    getWord8
+  , getInt8
+  , getWord16le
+  , getInt16le
+  , getWord24le
+  , getInt24le
+  , getWord32le
+  , getInt32le
+  , Int16
+  , Word8
 ) where
 
 import Control.Applicative
