@@ -133,25 +133,27 @@ getFloat = do
 getHash :: forall k v. Ord k => Marshal k -> Marshal v -> Marshal (DM.Map k v)
 getHash k v = do
   n <- getFixnum
-  x <- DM.fromList `fmap` (replicateM n (liftM2 (,) k v))
+  x <- DM.fromList `fmap` replicateM n (liftM2 (,) k v)
   marshalLabel "Hash" $ return x
 
 -- | Deserialises <http://docs.ruby-lang.org/en/2.1.0/marshal_rdoc.html#label-Instance+Variables Instance Variables>.
 getIVar :: Marshal RubyObject -> Marshal (RubyObject, BS.ByteString)
 getIVar g = do
   string <- g
-  _      <- getFixnum
-  symbol <- g
-  denote <- g
-  case symbol of
-    RSymbol "E" -> case denote of
-      RBool True  -> cacheAndReturn string "UTF-8"
-      RBool False -> cacheAndReturn string "US-ASCII"
-      _           -> fail "getIVar: should be followed by bool"
-    RSymbol "encoding" -> case denote of
-      RString enc -> cacheAndReturn string enc
-      _           -> fail "getIVar: should be followed by string"
-    _          -> fail "getIVar: invalid ivar"
+  length <- getFixnum
+  if | length /= 1 -> fail "getIvar: expected single character"
+     | otherwise   -> do
+       symbol <- g
+       denote <- g
+       case symbol of
+         RSymbol "E" -> case denote of
+           RBool True  -> cacheAndReturn string "UTF-8"
+           RBool False -> cacheAndReturn string "US-ASCII"
+           _           -> fail "getIVar: expected bool"
+         RSymbol "encoding" -> case denote of
+           RString enc -> cacheAndReturn string enc
+           _           -> fail "getIVar: expected string"
+         _          -> fail "getIVar: invalid ivar"
   where
     cacheAndReturn string enc = do
       let result = (string, enc)
