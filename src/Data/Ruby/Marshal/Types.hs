@@ -44,6 +44,8 @@ data RubyObject
     -- ^ represents an @Array@
   | RHash                  !(Vector (RubyObject, RubyObject))
     -- ^ represents an @Hash@
+  | RIvar                  !(RubyObject, BS.ByteString)
+    -- ^ represents an @IVar@
   | RString                !BS.ByteString
     -- ^ represents a @String@
   | RFloat {-# UNPACK #-}  !Double
@@ -55,14 +57,15 @@ data RubyObject
   deriving (Eq, Show)
 
 -- | Allow easy pattern matching of values.
-pattern NilC     = 48
-pattern TrueC    = 84
-pattern FalseC   = 70
-pattern FixnumC  = 105
-pattern ArrayC   = 91
-pattern HashC    = 123
-pattern IvarC    = 73
-pattern StringC  = 34
-pattern FloatC   = 102
-pattern SymbolC  = 58
-pattern SymlinkC = 59
+pattern ArrayC      = 91
+pattern FalseC      = 70
+pattern FixnumC     = 105
+pattern FloatC      = 102
+pattern HashC       = 123
+pattern IvarC       = 73
+pattern NilC        = 48
+pattern ObjectLinkC = 64
+pattern StringC     = 34
+pattern SymbolC     = 58
+pattern SymlinkC    = 59
+pattern TrueC       = 84

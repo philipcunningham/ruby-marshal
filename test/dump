@@ -5,24 +5,26 @@ unless RUBY_VERSION >= "2.0.0"
 end
 
 TYPES = {
-  "nil"         => nil,
-  "true"        => true,
-  "false"       => false,
-  "0"           => 0,
-  "neg42"       => -42,
-  "42"          => 42,
-  "neg2048"     => -2048,
-  "2048"        => 2048,
-  "nilArray"    => [nil],
-  "boolArray"   => [true, false],
-  "fixnumArray" => [-2048, -42, 0, 42, 2048],
-  "stringArray" => ["hello", "haskell"],
-  "symbolArray" => [:hello, :haskell, :hello, :haskell],
-  "bigArray"    => (-10000..10000).to_a,
-  "fixnumHash"  => { 0 => false, 1 => true },
-  "rawString"   => "hello haskell",
-  "float"       => 3.33333,
-  "symbol"      => :hello_haskell
+  "nil"              => nil,
+  "true"             => true,
+  "false"            => false,
+  "0"                => 0,
+  "neg42"            => -42,
+  "42"               => 42,
+  "neg2048"          => -2048,
+  "2048"             => 2048,
+  "nilArray"         => [nil],
+  "boolArray"        => [true, false],
+  "fixnumArray"      => [-2048, -42, 0, 42, 2048],
+  "stringArray"      => ["hello", "haskell", "hello", "haskell"],
+  "symbolArray"      => [:hello, :haskell, :hello, :haskell],
+  "bigArray"         => (-10000..10000).to_a,
+  "fixnumHash"       => { 0 => false, 1 => true },
+  "UTF_8_String"     => "hello haskell",
+  "US_ASCII_String"  => "hello haskell".force_encoding("US-ASCII"),
+  "Shift_JIS_String" => "hello haskell".force_encoding("Shift_JIS"),
+  "float"            => 3.33333,
+  "symbol"           => :hello_haskell
 }
 
 def dump(name, x)
