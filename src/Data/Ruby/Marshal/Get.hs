@@ -140,18 +140,20 @@ getHash k v = do
 getIVar :: Marshal RubyObject -> Marshal (RubyObject, BS.ByteString)
 getIVar g = do
   string <- g
-  _      <- getFixnum
-  symbol <- g
-  denote <- g
-  case symbol of
-    RSymbol "E" -> case denote of
-      RBool True  -> cacheAndReturn string "UTF-8"
-      RBool False -> cacheAndReturn string "US-ASCII"
-      _           -> fail "getIVar: should be followed by bool"
-    RSymbol "encoding" -> case denote of
-      RString enc -> cacheAndReturn string enc
-      _           -> fail "getIVar: should be followed by string"
-    _          -> fail "getIVar: invalid ivar"
+  length <- getFixnum
+  if | length /= 1 -> fail "getIvar: expected single character"
+     | otherwise   -> do
+       symbol <- g
+       denote <- g
+       case symbol of
+         RSymbol "E" -> case denote of
+           RBool True  -> cacheAndReturn string "UTF-8"
+           RBool False -> cacheAndReturn string "US-ASCII"
+           _           -> fail "getIVar: expected bool"
+         RSymbol "encoding" -> case denote of
+           RString enc -> cacheAndReturn string enc
+           _           -> fail "getIVar: expected string"
+         _          -> fail "getIVar: invalid ivar"
   where
     cacheAndReturn string enc = do
       let result = (string, enc)
