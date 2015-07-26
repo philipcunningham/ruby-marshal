@@ -7,32 +7,35 @@ import Control.Applicative
 import Prelude
 
 import Control.Monad.State (lift, MonadState, StateT)
+import Data.Map            (Map)
 import Data.Serialize.Get  (Get)
 import Data.Vector         (Vector)
 
 import qualified Data.ByteString as BS
 
 data Cache = Cache {
-    objects :: Vector RubyObject
+    _objects :: Vector RubyObject
     -- ^ object cache.
-  , symbols :: Vector RubyObject
+  , _symbols :: Vector RubyObject
     -- ^ symbol cache.
   } deriving Show
 
+-- | Convey when unsupported object encountered.
 data Error
-  = Unknown
-    -- ^ represents an unknown Ruby object
-  | Unsupported
+  = Unsupported
     -- ^ represents an unsupported Ruby object
-  deriving (Eq, Show)
+  deriving (Eq, Ord, Show)
 
+-- | Marshal monad endows the underling Get monad with State.
 newtype Marshal a = Marshal {
-    runMarshal :: StateT Cache Get a
+  runMarshal :: StateT Cache Get a
   } deriving (Functor, Applicative, Monad, MonadState Cache)
 
+-- | Lift Get monad into Marshal monad.
 liftMarshal :: Get a -> Marshal a
 liftMarshal = Marshal . lift
 
+-- | Representation of a Ruby object.
 data RubyObject
   = RNil
     -- ^ represents @nil@
@@ -42,9 +45,9 @@ data RubyObject
     -- ^ represents a @Fixnum@
   | RArray                 !(Vector RubyObject)
     -- ^ represents an @Array@
-  | RHash                  !(Vector (RubyObject, RubyObject))
+  | RHash                  !(Map RubyObject RubyObject)
     -- ^ represents an @Hash@
-  | RIvar                  !(RubyObject, BS.ByteString)
+  | RIVar                  !(RubyObject, BS.ByteString)
     -- ^ represents an @IVar@
   | RString                !BS.ByteString
     -- ^ represents a @String@
@@ -54,18 +57,32 @@ data RubyObject
     -- ^ represents a @Symbol@
   | RError                 !Error
     -- ^ represents an invalid object
-  deriving (Eq, Show)
+  deriving (Eq, Ord, Show)
 
--- | Allow easy pattern matching of values.
-pattern ArrayC      = 91
-pattern FalseC      = 70
-pattern FixnumC     = 105
-pattern FloatC      = 102
-pattern HashC       = 123
-pattern IvarC       = 73
-pattern NilC        = 48
+-- See docs.ruby-lang.org for more information
+-- http://docs.ruby-lang.org/en/2.1.0/marshal_rdoc.html#label-Stream+Format
+
+-- | NilClass
+pattern NilC = 48
+-- | FalseClass
+pattern FalseC = 70
+-- | TrueClass
+pattern TrueC = 84
+-- | Array
+pattern ArrayC = 91
+-- | Fixnum
+pattern FixnumC = 105
+-- | Float
+pattern FloatC = 102
+-- | Hash
+pattern HashC = 123
+-- | IVar
+pattern IVarC = 73
+-- | Object link
 pattern ObjectLinkC = 64
-pattern StringC     = 34
-pattern SymbolC     = 58
-pattern SymlinkC    = 59
-pattern TrueC       = 84
+-- | String
+pattern StringC = 34
+-- | Symbol
+pattern SymbolC = 58
+-- | Symlink
+pattern SymlinkC = 59

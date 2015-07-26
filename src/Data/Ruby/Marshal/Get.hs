@@ -1,5 +1,8 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
 
 --------------------------------------------------------------------
 -- |
@@ -16,38 +19,67 @@
 --------------------------------------------------------------------
 
 module Data.Ruby.Marshal.Get (
-  getMarshalVersion,
-  getNil,
-  getBool,
-  getFixnum,
-  getArray,
-  getHash,
-  getIvar,
-  getString,
-  getFloat,
-  getSymbol,
-  getSymlink,
-  getObjectLink
+    getMarshalVersion
+  , getRubyObject
+  , getNil
+  , getBool
+  , getArray
+  , getFixnum
+  , getFloat
+  , getHash
+  , getIVar
+  , getObjectLink
+  , getString
+  , getSymbol
+  , getSymlink
 ) where
 
 import Control.Applicative
 import Data.Ruby.Marshal.Internal.Int
 import Data.Ruby.Marshal.Types
-import Prelude hiding (length)
 
-import Control.Monad       (guard, liftM2)
+import Control.Monad       (guard, liftM2, replicateM)
 import Control.Monad.State (get, gets, put)
 import Data.Serialize.Get  (Get, getBytes, getTwoOf, label)
 import Data.String.Conv    (toS)
 import Text.Read           (readMaybe)
 
 import qualified Data.ByteString as BS
+import qualified Data.Map        as DM
 import qualified Data.Vector     as V
+
+import Prelude hiding (length)
+
+--------------------------------------------------------------------
+-- Top-level functions.
 
 -- | Deserialises Marshal version.
 getMarshalVersion :: Marshal (Word8, Word8)
 getMarshalVersion = marshalLabel "Marshal Version" $
   getTwoOf getWord8 getWord8
+
+-- | Deserialises a subset of Ruby objects.
+getRubyObject :: Marshal RubyObject
+getRubyObject = getMarshalVersion >> go
+  where
+    go :: Marshal RubyObject
+    go = liftMarshal getWord8 >>= \case
+      NilC        -> return RNil
+      TrueC       -> return $ RBool True
+      FalseC      -> return $ RBool False
+      ArrayC      -> RArray  <$> getArray go
+      FixnumC     -> RFixnum <$> getFixnum
+      FloatC      -> RFloat  <$> getFloat
+      HashC       -> RHash   <$> getHash go go
+      IVarC       -> RIVar   <$> getIVar go
+      ObjectLinkC -> RIVar   <$> getObjectLink
+      StringC     -> RString <$> getString
+      SymbolC     -> RSymbol <$> getSymbol
+      SymlinkC    -> RSymbol <$> getSymlink
+      _           -> return $ RError Unsupported
+
+--------------------------------------------------------------------
+-- Ancillary functions.
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/NilClass.html nil>.
 getNil :: Marshal ()
@@ -58,6 +90,13 @@ getNil = marshalLabel "Nil" $ tag 48
 getBool :: Marshal Bool
 getBool = marshalLabel "Bool" $
   True <$ tag 84 <|> False <$ tag 70
+
+-- | Deserialises <http://ruby-doc.org/core-2.2.0/Array.html Array>.
+getArray :: Marshal a -> Marshal (V.Vector a)
+getArray g = do
+  n <- getFixnum
+  x <- V.replicateM n g
+  marshalLabel "Array" $ return x
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Fixnum.html Fixnum>.
 getFixnum :: Marshal Int
@@ -81,49 +120,6 @@ getFixnum = marshalLabel "Fixnum" $ do
       x <- fromIntegral <$> getInt8
       if x >= 0 && x <= 127 then return (x - 256) else return x
 
--- | Deserialises <http://ruby-doc.org/core-2.2.0/Array.html Array>.
-getArray :: Marshal a -> Marshal (V.Vector a)
-getArray g = do
-  n <- getFixnum
-  x <- V.replicateM n g
-  marshalLabel "Array" $ return x
-
--- | Deserialises <http://ruby-doc.org/core-2.2.0/Hash.html Hash>.
-getHash :: Marshal a -> Marshal b -> Marshal (V.Vector (a, b))
-getHash k v = do
-  n <- getFixnum
-  x <- V.replicateM n (liftM2 (,) k v)
-  marshalLabel "Hash" $ return x
-
--- | Deserialises <http://ruby-doc.org/core-2.2.0/String.html String>.
-getString :: Marshal BS.ByteString
-getString = do
-  n <- getFixnum
-  x <- liftMarshal $ getBytes n
-  marshalLabel "RawString" $ return x
-
--- | Deserialises <http://docs.ruby-lang.org/en/2.1.0/marshal_rdoc.html#label-Instance+Variables Instance Variables>.
-getIvar :: Marshal RubyObject -> Marshal (RubyObject, BS.ByteString)
-getIvar g = do
-  string <- g
-  _      <- getFixnum
-  symbol <- g
-  denote <- g
-  case symbol of
-    RSymbol "E" -> case denote of
-      RBool True  -> cacheAndReturn string "UTF-8"
-      RBool False -> cacheAndReturn string "US-ASCII"
-      _           -> fail "getIvar: should be followed by bool"
-    RSymbol "encoding" -> case denote of
-      RString enc -> cacheAndReturn string enc
-      _           -> fail "getIvar: should be followed by symbol"
-    _          -> fail "getIvar: invalid ivar"
-  where
-    cacheAndReturn string enc = do
-      let result = (string, enc)
-      writeObject $ RIvar result
-      marshalLabel "IVar" $ return result
-
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Float.html Float>.
 getFloat :: Marshal Double
 getFloat = do
@@ -133,11 +129,56 @@ getFloat = do
     Nothing    -> fail "getFloat"
   marshalLabel "Float" $ return x
 
+-- | Deserialises <http://ruby-doc.org/core-2.2.0/Hash.html Hash>.
+getHash :: forall k v. Ord k => Marshal k -> Marshal v -> Marshal (DM.Map k v)
+getHash k v = do
+  n <- getFixnum
+  x <- DM.fromList `fmap` (replicateM n (liftM2 (,) k v))
+  marshalLabel "Hash" $ return x
+
+-- | Deserialises <http://docs.ruby-lang.org/en/2.1.0/marshal_rdoc.html#label-Instance+Variables Instance Variables>.
+getIVar :: Marshal RubyObject -> Marshal (RubyObject, BS.ByteString)
+getIVar g = do
+  string <- g
+  _      <- getFixnum
+  symbol <- g
+  denote <- g
+  case symbol of
+    RSymbol "E" -> case denote of
+      RBool True  -> cacheAndReturn string "UTF-8"
+      RBool False -> cacheAndReturn string "US-ASCII"
+      _           -> fail "getIVar: should be followed by bool"
+    RSymbol "encoding" -> case denote of
+      RString enc -> cacheAndReturn string enc
+      _           -> fail "getIVar: should be followed by string"
+    _          -> fail "getIVar: invalid ivar"
+  where
+    cacheAndReturn string enc = do
+      let result = (string, enc)
+      writeCache $ RIVar result
+      marshalLabel "IVar" $ return result
+
+-- | Deserialises <http://ruby-doc.org/core-2.2.0/Symbol.html Symbol>.
+getObjectLink :: Marshal (RubyObject, BS.ByteString)
+getObjectLink = do
+  index <- getFixnum
+  maybeObject <- readObject index
+  case maybeObject of
+    Just (RIVar x) -> return x
+    _              -> fail "getObjectLink"
+
+-- | Deserialises <http://ruby-doc.org/core-2.2.0/String.html String>.
+getString :: Marshal BS.ByteString
+getString = do
+  n <- getFixnum
+  x <- liftMarshal $ getBytes n
+  marshalLabel "RawString" $ return x
+
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Symbol.html Symbol>.
 getSymbol :: Marshal BS.ByteString
 getSymbol = do
   x <- getString
-  writeObject $ RSymbol x
+  writeCache $ RSymbol x
   marshalLabel "Symbol" $ return x
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Symbol.html Symbol>.
@@ -149,14 +190,8 @@ getSymlink = do
     Just (RSymbol bs) -> return bs
     _                 -> fail "getSymlink"
 
--- | Deserialises <http://ruby-doc.org/core-2.2.0/Symbol.html Symbol>.
-getObjectLink :: Marshal (RubyObject, BS.ByteString)
-getObjectLink = do
-  index <- getFixnum
-  maybeObject <- readObject index
-  case maybeObject of
-    Just (RIvar x) -> return x
-    _              -> fail "getObjectLink"
+--------------------------------------------------------------------
+-- Utility functions.
 
 -- | Lift label into Marshal monad.
 marshalLabel :: String -> Get a -> Marshal a
@@ -169,18 +204,19 @@ tag t = label "Tag" $
 
 -- | Look up object in our object cache.
 readObject :: Int -> Marshal (Maybe RubyObject)
-readObject index = gets objects >>= \objectCache ->
+readObject index = gets _objects >>= \objectCache ->
   return $ objectCache V.!? index
 
 -- | Look up a symbol in our symbol cache.
 readSymbol :: Int -> Marshal (Maybe RubyObject)
-readSymbol index = gets symbols >>= \symCache ->
-  return $ symCache V.!? index
+readSymbol index = gets _symbols >>= \symbolCache ->
+  return $ symbolCache V.!? index
 
 -- | Write an object to the appropriate cache.
-writeObject :: RubyObject -> Marshal ()
-writeObject object = do
+writeCache :: RubyObject -> Marshal ()
+writeCache object = do
   cache <- get
   case object of
-    RSymbol _ -> put $ cache { symbols = V.snoc (symbols cache) object }
-    _         -> put $ cache { objects = V.snoc (objects cache) object }
+    RIVar   _ -> put $ cache { _objects = V.snoc (_objects cache) object }
+    RSymbol _ -> put $ cache { _symbols = V.snoc (_symbols cache) object }
+    _         -> return ()

@@ -6,33 +6,68 @@
 
 Haskell library to parse a subset of Ruby objects serialised with Marshal.dump.
 
-## TODO
+## Supported Types
 
-- [x] Support `nil`
-- [x] Support `true | false`
-- [x] Support `Fixnum`
-- [x] Support `Array` https://github.com/filib/ruby-marshal/issues/1
-- [x] Support `Hash` https://github.com/filib/ruby-marshal/issues/2
-- [x] Support `String` https://github.com/filib/ruby-marshal/issues/3
-- [x] Support `Symbol` https://github.com/filib/ruby-marshal/issues/4
-- [x] Support `Symlink` https://github.com/filib/ruby-marshal/issues/35
-- [x] Support `Float` https://github.com/filib/ruby-marshal/issues/12
+- `NilClass`
+- `TrueClass | FalseClass`
+- `Array`
+- `Fixnum`
+- `Float`
+- `Hash`
+- `String`
+- `Symbol`
+
+If you would like to add support for another type, please feel free to
+create an issue or open a pull request using the guidelines below.
+
+## Usage
+
+### Example
+
+``` haskell
+{-# LANGUAGE OverloadedStrings #-}
+
+module Main where
+
+import Data.Monoid       (mconcat)
+import Data.Ruby.Marshal (decode, RubyObject(..))
+import System.Directory  (getCurrentDirectory)
+
+import qualified Data.ByteString as BS
+import qualified Data.Map        as DM
+
+key :: RubyObject
+key = RIVar (RString "user_id", "UTF-8")
+
+lookupId :: RubyObject -> Maybe RubyObject
+lookupId (RHash cookie) = DM.lookup key cookie
+lookupId _              = Nothing
+
+main :: IO ()
+main = do
+  dir <- getCurrentDirectory
+  rbs <- BS.readFile (mconcat [dir, "/test/bin/railsCookie.bin"])
+  print $ case decode rbs of
+    Just cookie -> lookupId cookie
+    Nothing     -> Nothing
+```
 
 ## Contributing
 
-Check the issue tracker for the Ruby objects that are not yet
-supported and feel free to implement support for one of them. I'm
-currently working from
-[UnmarshalStream.java](https://github.com/jruby/jruby/blob/master/core/src/main/java/org/jruby/runtime/marshal/UnmarshalStream.java)
-and recommend you do the same.
+1. Fork it.
+2. Create your feature branch (`git checkout -b my-new-feature`).
+3. Commit your changes (`git commit -am 'Add some feature'`).
+4. Push to the branch (`git push origin my-new-feature`).
+5. Create new Pull Request.
 
-1. Fork it
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
-
-## Contributors
+### Contributors
 
 - [@filib](https://github.com/filib)
 - [@adinapoli](https://github.com/adinapoli)
+
+## Similar Libraries
+
+- [adjust/gorails](https://github.com/adjust/gorails)
+- [instore/node-marshal](https://github.com/instore/node-marshal)
+- [mfz/ruby-marshal](https://code.google.com/p/mfz-ruby-marshal)
+- [noxyu3m/erlang-ruby-marshal](https://github.com/noxyu3m/erlang-ruby-marshal)
