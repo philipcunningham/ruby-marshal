@@ -7,7 +7,7 @@ import Data.Ruby.Marshal (decode, RubyObject(..))
 import System.Directory  (getCurrentDirectory)
 
 import qualified Data.ByteString as BS
-import qualified Data.Map        as DM
+import qualified Data.Map.Strict as DM
 
 key :: RubyObject
 key = RIVar (RString "user_id", "UTF-8")

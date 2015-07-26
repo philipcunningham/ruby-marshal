@@ -6,7 +6,7 @@ import Data.Ruby.Marshal
 import Test.Hspec
 
 import qualified Data.ByteString as BS
-import qualified Data.Map        as DM
+import qualified Data.Map.Strict as DM
 import qualified Data.Vector     as V
 
 loadBin :: FilePath -> IO (Maybe RubyObject)
