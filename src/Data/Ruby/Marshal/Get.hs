@@ -133,7 +133,7 @@ getFloat = do
 getHash :: forall k v. Ord k => Marshal k -> Marshal v -> Marshal (DM.Map k v)
 getHash k v = do
   n <- getFixnum
-  x <- DM.fromList `fmap` (replicateM n (liftM2 (,) k v))
+  x <- DM.fromList `fmap` replicateM n (liftM2 (,) k v)
   marshalLabel "Hash" $ return x
 
 -- | Deserialises <http://docs.ruby-lang.org/en/2.1.0/marshal_rdoc.html#label-Instance+Variables Instance Variables>.
