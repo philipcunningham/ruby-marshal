@@ -45,7 +45,7 @@ import Data.String.Conv    (toS)
 import Text.Read           (readMaybe)
 
 import qualified Data.ByteString as BS
-import qualified Data.Map        as DM
+import qualified Data.Map.Strict as DM
 import qualified Data.Vector     as V
 
 import Prelude hiding (length)
