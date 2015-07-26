@@ -34,9 +34,8 @@ emptyCache :: Cache
 emptyCache = Cache { _symbols = V.empty, _objects = V.empty }
 
 -- | Converts an Either to a Maybe.
-fromEitherToMaybe :: Either a b -> Maybe b
-fromEitherToMaybe (Left  _) = Nothing
-fromEitherToMaybe (Right x) = Just x
+hush :: Either a b -> Maybe b
+hush = either (const Nothing) Just
 
 -- | Deserialises a subset of Ruby objects serialised with Marshal, Ruby's
 -- built-in binary serialisation format.
@@ -44,5 +43,5 @@ decode :: BS.ByteString
      -- ^ Serialised Ruby object
      -> Maybe RubyObject
      -- ^ De-serialisation result
-decode x = fromEitherToMaybe $
+decode x = hush $
   runGet (evalStateT (runMarshal getRubyObject) emptyCache) x
