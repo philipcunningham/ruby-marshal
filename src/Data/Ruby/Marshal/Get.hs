@@ -1,5 +1,7 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 --------------------------------------------------------------------
 -- |
@@ -17,6 +19,7 @@
 
 module Data.Ruby.Marshal.Get (
   getMarshalVersion,
+  getRubyObject,
   getNil,
   getBool,
   getFixnum,
@@ -48,6 +51,26 @@ import qualified Data.Vector     as V
 getMarshalVersion :: Marshal (Word8, Word8)
 getMarshalVersion = marshalLabel "Marshal Version" $
   getTwoOf getWord8 getWord8
+
+-- | Deserialises a subset of Ruby objects.
+getRubyObject :: Marshal RubyObject
+getRubyObject = getMarshalVersion >> go
+  where
+    go :: Marshal RubyObject
+    go = liftMarshal getWord8 >>= \case
+      NilC        -> return RNil
+      TrueC       -> return $ RBool True
+      FalseC      -> return $ RBool False
+      ArrayC      -> RArray  <$> getArray go
+      FixnumC     -> RFixnum <$> getFixnum
+      FloatC      -> RFloat  <$> getFloat
+      HashC       -> RHash   <$> getHash go go
+      IvarC       -> RIvar   <$> getIvar go
+      ObjectLinkC -> RIvar   <$> getObjectLink
+      StringC     -> RString <$> getString
+      SymbolC     -> RSymbol <$> getSymbol
+      SymlinkC    -> RSymbol <$> getSymlink
+      _           -> return $ RError Unsupported
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/NilClass.html nil>.
 getNil :: Marshal ()

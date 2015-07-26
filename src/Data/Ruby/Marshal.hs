@@ -17,13 +17,11 @@ module Data.Ruby.Marshal (
   load,
   -- * Re-exported modules
   module Data.Ruby.Marshal.Get,
-  module Data.Ruby.Marshal.Object,
   module Data.Ruby.Marshal.Types
 ) where
 
 import Data.Ruby.Marshal.Get
-import Data.Ruby.Marshal.Object
-import Data.Ruby.Marshal.Types
+import Data.Ruby.Marshal.Types (Cache(..), RubyObject(..), Marshal(..))
 
 import Control.Monad.State (evalStateT)
 import Data.Serialize      (runGet)

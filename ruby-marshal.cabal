@@ -39,7 +39,6 @@ library
   exposed-modules:
       Data.Ruby.Marshal
     , Data.Ruby.Marshal.Get
-    , Data.Ruby.Marshal.Object
     , Data.Ruby.Marshal.Types
     , Data.Ruby.Marshal.Internal.Int
 
