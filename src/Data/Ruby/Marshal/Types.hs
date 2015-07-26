@@ -26,7 +26,7 @@ data Error
     -- ^ represents an unsupported Ruby object
   deriving (Eq, Ord, Show)
 
--- | Marshal monad endows the underling Get monad with State.
+-- | Marshal monad endows the underlying Get monad with State.
 newtype Marshal a = Marshal {
   runMarshal :: StateT Cache Get a
   } deriving (Functor, Applicative, Monad, MonadState Cache)

@@ -160,7 +160,7 @@ getIVar g = do
       writeCache $ RIVar result
       marshalLabel "IVar" $ return result
 
--- | Deserialises <http://ruby-doc.org/core-2.2.0/Symbol.html Symbol>.
+-- | Pulls an Instance Variable out of the object cache.
 getObjectLink :: Marshal (RubyObject, BS.ByteString)
 getObjectLink = do
   index <- getFixnum
@@ -183,7 +183,7 @@ getSymbol = do
   writeCache $ RSymbol x
   marshalLabel "Symbol" $ return x
 
--- | Deserialises <http://ruby-doc.org/core-2.2.0/Symbol.html Symbol>.
+-- | Pulls a Symbol out of the symbol cache.
 getSymlink :: Marshal BS.ByteString
 getSymlink = do
   index <- getFixnum
