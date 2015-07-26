@@ -115,7 +115,7 @@ getIvar g = do
         writeObject $ RIvar (string, "UTF-8")
         return (string, "UTF-8")
       RBool False -> do
-        writeObject $ RIvar (string, "UTF-8")
+        writeObject $ RIvar (string, "US-ASCII")
         return (string, "US-ASCII")
       _          -> fail "getIvar"
     RSymbol "encoding" -> case denote of
