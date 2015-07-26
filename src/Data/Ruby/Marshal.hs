@@ -17,16 +17,23 @@ module Data.Ruby.Marshal (
   load,
   -- * Re-exported modules
   module Data.Ruby.Marshal.Get,
-  module Data.Ruby.Marshal.Object
+  module Data.Ruby.Marshal.Object,
+  module Data.Ruby.Marshal.Types
 ) where
 
 import Data.Ruby.Marshal.Get
 import Data.Ruby.Marshal.Object
+import Data.Ruby.Marshal.Types
 
 import Control.Monad.State (evalStateT)
 import Data.Serialize      (runGet)
 
 import qualified Data.ByteString as BS
+import qualified Data.Vector     as V
+
+-- | Constructs an empty cache to store symbols and objects.
+emptyCache :: Cache
+emptyCache = Cache { symbols = V.empty, objects = V.empty }
 
 -- | Deserialises a subset of Ruby objects serialised with Marshal, Ruby's
 -- built-in binary serialisation format.
