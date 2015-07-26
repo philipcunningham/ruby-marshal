@@ -22,7 +22,7 @@ TYPES = {
   "fixnumHash"       => { 0 => false, 1 => true },
   "UTF_8_String"     => "hello haskell",
   "US_ASCII_String"  => "hello haskell".force_encoding("US-ASCII"),
-  "SHIFT_JIS_String" => "hello haskell".force_encoding("Shift_JIS"),
+  "Shift_JIS_String" => "hello haskell".force_encoding("Shift_JIS"),
   "float"            => 3.33333,
   "symbol"           => :hello_haskell
 }
