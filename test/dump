@@ -5,26 +5,29 @@ unless RUBY_VERSION >= "2.0.0"
 end
 
 TYPES = {
-  "nil"              => nil,
-  "true"             => true,
-  "false"            => false,
   "0"                => 0,
-  "neg42"            => -42,
-  "42"               => 42,
-  "neg2048"          => -2048,
   "2048"             => 2048,
-  "nilArray"         => [nil],
-  "boolArray"        => [true, false],
-  "fixnumArray"      => [-2048, -42, 0, 42, 2048],
-  "stringArray"      => ["hello", "haskell", "hello", "haskell"],
-  "symbolArray"      => [:hello, :haskell, :hello, :haskell],
-  "bigArray"         => (-10000..10000).to_a,
-  "fixnumHash"       => { 0 => false, 1 => true },
-  "UTF_8_String"     => "hello haskell",
-  "US_ASCII_String"  => "hello haskell".force_encoding("US-ASCII"),
+  "42"               => 42,
   "Shift_JIS_String" => "hello haskell".force_encoding("Shift_JIS"),
+  "US_ASCII_String"  => "hello haskell".force_encoding("US-ASCII"),
+  "UTF_8_String"     => "hello haskell",
+  "bigArray"         => (-10000..10000).to_a,
+  "boolArray"        => [true, false],
+  "false"            => false,
+  "fixnumArray"      => [-2048, -42, 0, 42, 2048],
+  "fixnumHash"       => { 0 => false, 1 => true },
   "float"            => 3.33333,
-  "symbol"           => :hello_haskell
+  "neg2048"          => -2048,
+  "neg42"            => -42,
+  "nil"              => nil,
+  "nilArray"         => [nil],
+  "railsCookie"      => { "session_id" => "ba0844151d",
+                          "_csrf_token" => "a9212445c5",
+                          "user_id" => "1" },
+  "stringArray"      => ["hello", "haskell", "hello", "haskell"],
+  "symbol"           => :hello_haskell,
+  "symbolArray"      => [:hello, :haskell, :hello, :haskell],
+  "true"             => true
 }
 
 def dump(name, x)

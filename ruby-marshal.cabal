@@ -59,6 +59,22 @@ executable Profiling
     -fprof-auto
     -rtsopts
 
+executable RailsSession
+  build-depends:
+      base          >= 4.7 && < 5
+    , bytestring    >= 0.9.0
+    , directory     >= 1.2.1.0
+    , ruby-marshal  -any
+  hs-source-dirs:
+    examples
+  main-is:
+    RailsSession.hs
+  default-language:
+    Haskell2010
+  ghc-options:
+    -fprof-auto
+    -rtsopts
+
 test-suite spec
   ghc-options:
     -Wall
