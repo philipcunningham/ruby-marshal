@@ -7,6 +7,7 @@ import Control.Applicative
 import Prelude
 
 import Control.Monad.State (lift, MonadState, StateT)
+import Data.Map            (Map)
 import Data.Serialize.Get  (Get)
 import Data.Vector         (Vector)
 
@@ -23,7 +24,7 @@ data Cache = Cache {
 data Error
   = Unsupported
     -- ^ represents an unsupported Ruby object
-  deriving (Eq, Show)
+  deriving (Eq, Ord, Show)
 
 -- | Marshal monad endows the underling Get monad with State.
 newtype Marshal a = Marshal {
@@ -44,7 +45,7 @@ data RubyObject
     -- ^ represents a @Fixnum@
   | RArray                 !(Vector RubyObject)
     -- ^ represents an @Array@
-  | RHash                  !(Vector (RubyObject, RubyObject))
+  | RHash                  !(Map RubyObject RubyObject)
     -- ^ represents an @Hash@
   | RIVar                  !(RubyObject, BS.ByteString)
     -- ^ represents an @IVar@
@@ -56,8 +57,9 @@ data RubyObject
     -- ^ represents a @Symbol@
   | RError                 !Error
     -- ^ represents an invalid object
-  deriving (Eq, Show)
+  deriving (Eq, Ord, Show)
 
+-- See docs.ruby-lang.org for more information
 -- http://docs.ruby-lang.org/en/2.1.0/marshal_rdoc.html#label-Stream+Format
 
 -- | NilClass

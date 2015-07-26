@@ -2,6 +2,7 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
 
 --------------------------------------------------------------------
 -- |
@@ -37,13 +38,14 @@ import Control.Applicative
 import Data.Ruby.Marshal.Internal.Int
 import Data.Ruby.Marshal.Types
 
-import Control.Monad       (guard, liftM2)
+import Control.Monad       (guard, liftM2, replicateM)
 import Control.Monad.State (get, gets, put)
 import Data.Serialize.Get  (Get, getBytes, getTwoOf, label)
 import Data.String.Conv    (toS)
 import Text.Read           (readMaybe)
 
 import qualified Data.ByteString as BS
+import qualified Data.Map        as DM
 import qualified Data.Vector     as V
 
 import Prelude hiding (length)
@@ -128,10 +130,10 @@ getFloat = do
   marshalLabel "Float" $ return x
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Hash.html Hash>.
-getHash :: Marshal a -> Marshal b -> Marshal (V.Vector (a, b))
+getHash :: forall k v. Ord k => Marshal k -> Marshal v -> Marshal (DM.Map k v)
 getHash k v = do
   n <- getFixnum
-  x <- V.replicateM n (liftM2 (,) k v)
+  x <- DM.fromList `fmap` (replicateM n (liftM2 (,) k v))
   marshalLabel "Hash" $ return x
 
 -- | Deserialises <http://docs.ruby-lang.org/en/2.1.0/marshal_rdoc.html#label-Instance+Variables Instance Variables>.
