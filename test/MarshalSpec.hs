@@ -11,7 +11,7 @@ import qualified Data.Vector     as V
 loadBin :: FilePath -> IO (Maybe RubyObject)
 loadBin path = do
     bs <- BS.readFile path
-    return $ load bs
+    return $ decode bs
 
 spec :: Spec
 spec = describe "load" $ do

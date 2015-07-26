@@ -14,7 +14,7 @@
 
 module Data.Ruby.Marshal (
   -- * Simple interface to deserialise Ruby Marshal binary
-  load,
+  decode,
   -- * Re-exported modules
   module Data.Ruby.Marshal.Get,
   module Data.Ruby.Marshal.Types
@@ -33,16 +33,16 @@ import qualified Data.Vector     as V
 emptyCache :: Cache
 emptyCache = Cache { _symbols = V.empty, _objects = V.empty }
 
--- | Deserialises a subset of Ruby objects serialised with Marshal, Ruby's
--- built-in binary serialisation format.
-load :: BS.ByteString
-     -- ^ Serialised Ruby object
-     -> Maybe RubyObject
-     -- ^ De-serialisation result
-load x = fromEitherToMaybe $
-  runGet (evalStateT (runMarshal getRubyObject) emptyCache) x
-
 -- | Converts an Either to a Maybe.
 fromEitherToMaybe :: Either a b -> Maybe b
 fromEitherToMaybe (Left  _) = Nothing
 fromEitherToMaybe (Right x) = Just x
+
+-- | Deserialises a subset of Ruby objects serialised with Marshal, Ruby's
+-- built-in binary serialisation format.
+decode :: BS.ByteString
+     -- ^ Serialised Ruby object
+     -> Maybe RubyObject
+     -- ^ De-serialisation result
+decode x = fromEitherToMaybe $
+  runGet (evalStateT (runMarshal getRubyObject) emptyCache) x

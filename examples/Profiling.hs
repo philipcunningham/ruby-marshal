@@ -3,7 +3,7 @@
 module Main where
 
 import Data.Monoid       (mconcat)
-import Data.Ruby.Marshal (load, RubyObject(..))
+import Data.Ruby.Marshal (decode, RubyObject(..))
 import Data.Vector       (Vector)
 import System.Directory  (getCurrentDirectory)
 
@@ -20,6 +20,6 @@ main :: IO ()
 main = do
   dir <- getCurrentDirectory
   rbs <- BS.readFile (mconcat [dir, "/test/bin/bigArray.bin"])
-  print $ load rbs >>= \case
+  print $ decode rbs >>= \case
     RArray xs -> Just $ sumFixnum xs
     _         -> Nothing
