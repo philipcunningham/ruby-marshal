@@ -6,7 +6,6 @@ import Data.Ruby.Marshal
 import Test.Hspec
 
 import qualified Data.ByteString as BS
-import qualified Data.Map.Strict as DM
 import qualified Data.Vector     as V
 
 loadBin :: FilePath -> IO (Maybe RubyObject)
@@ -84,7 +83,7 @@ spec = describe "load" $ do
   context "when we have { 0 => false, 1 => true }" $
     it "should parse" $ do
       object <- loadBin "test/bin/fixnumHash.bin"
-      object `shouldBe` Just (RHash $ DM.fromList [(RFixnum 0, RBool False), (RFixnum 1, RBool True)])
+      object `shouldBe` Just (RHash $ V.fromList [(RFixnum 0, RBool False), (RFixnum 1, RBool True)])
 
   context "when we have 'hello haskell'" $
     it "should parse" $ do

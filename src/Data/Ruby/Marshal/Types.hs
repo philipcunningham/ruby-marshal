@@ -1,18 +1,35 @@
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE IncoherentInstances #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE PatternSynonyms #-}
+
+--------------------------------------------------------------------
+-- |
+-- Module    : Data.Ruby.Marshal.Types
+-- Copyright : (c) Philip Cunningham, 2015
+-- License   : MIT
+--
+-- Maintainer:  802389+philipcunningham@users.noreply.github.com
+-- Stability :  experimental
+-- Portability: portable
+--
+-- Common types for Ruby Marshal deserialisation.
+--
+--------------------------------------------------------------------
 
 module Data.Ruby.Marshal.Types where
 
 import Control.Applicative
 import Prelude
 
+import Control.Arrow       ((***))
 import Control.Monad.State (lift, MonadState, StateT)
-import Data.Map            (Map)
 import Data.Serialize.Get  (Get)
-import Data.Vector         (Vector)
 
 import qualified Data.ByteString as BS
+import qualified Data.Map.Strict as DM
+import qualified Data.Vector     as V
 
 -- | Character that represents NilClass.
 pattern NilC = 48
@@ -41,9 +58,9 @@ pattern SymlinkC = 59
 
 -- | State that we must carry around during parsing.
 data Cache = Cache {
-    _objects :: !(Vector RubyObject)
+    _objects :: !(V.Vector RubyObject)
     -- ^ object cache.
-  , _symbols :: !(Vector RubyObject)
+  , _symbols :: !(V.Vector RubyObject)
     -- ^ symbol cache.
   } deriving Show
 
@@ -64,9 +81,9 @@ data RubyObject
     -- ^ represents @true@ or @false@
   | RFixnum {-# UNPACK #-} !Int
     -- ^ represents a @Fixnum@
-  | RArray                 !(Vector RubyObject)
+  | RArray                 !(V.Vector RubyObject)
     -- ^ represents an @Array@
-  | RHash                  !(Map RubyObject RubyObject)
+  | RHash                  !(V.Vector (RubyObject, RubyObject))
     -- ^ represents an @Hash@
   | RIVar                  !(RubyObject, BS.ByteString)
     -- ^ represents an @IVar@
@@ -78,7 +95,7 @@ data RubyObject
     -- ^ represents a @Symbol@
   | RError                 !Error
     -- ^ represents an invalid object
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Show)
 
 -- | Convey when unsupported object encountered.
 data Error
@@ -86,28 +103,55 @@ data Error
     -- ^ represents an unsupported Ruby object
   deriving (Eq, Ord, Show)
 
-class Ruby a where
-  toRuby   :: a -> RubyObject
+-- | Transform plain Haskell values to RubyObjects and back.
+class Rubyable a where
+  -- | Takes a plain Haskell value and lifts into RubyObject
+  toRuby :: a -> RubyObject
+  -- | Takes a RubyObject transforms it into a more general Haskell value.
   fromRuby :: RubyObject -> Maybe a
 
-instance Ruby RubyObject where
+-- core instances
+
+instance Rubyable RubyObject where
   toRuby = id
   fromRuby = Just
 
-instance Ruby () where
+instance Rubyable () where
   toRuby _ = RNil
   fromRuby = \case
     RNil -> Just ()
     _    -> Nothing
 
-instance Ruby Bool where
+instance Rubyable Bool where
   toRuby = RBool
   fromRuby = \case
     RBool x -> Just x
     _       -> Nothing
 
-instance Ruby Int where
+instance Rubyable Int where
   toRuby = RFixnum
   fromRuby = \case
     RFixnum x -> Just x
     _         -> Nothing
+
+instance Rubyable a => Rubyable (V.Vector a) where
+  toRuby = RArray . V.map toRuby
+  fromRuby = \case
+    RArray x -> V.mapM fromRuby x
+    _        -> Nothing
+
+instance (Rubyable a, Rubyable b) => Rubyable (V.Vector (a, b)) where
+  toRuby x = RHash $ V.map (toRuby *** toRuby) x
+  fromRuby = \case
+    RHash x -> V.mapM (\(k, v) -> (,) <$> fromRuby k <*> fromRuby v) x
+    _       -> Nothing
+
+-- map like
+
+instance (Rubyable a, Rubyable b) => Rubyable [(a, b)] where
+  toRuby = toRuby . V.fromList
+  fromRuby x = V.toList <$> fromRuby x
+
+instance (Rubyable a, Rubyable b, Ord a) => Rubyable (DM.Map a b) where
+  toRuby = toRuby . DM.toList
+  fromRuby x = DM.fromList <$> fromRuby x
