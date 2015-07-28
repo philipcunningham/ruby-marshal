@@ -1,4 +1,5 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE PatternSynonyms #-}
 
 module Data.Ruby.Marshal.Types where
@@ -13,18 +14,38 @@ import Data.Vector         (Vector)
 
 import qualified Data.ByteString as BS
 
+-- | Character that represents NilClass.
+pattern NilC = 48
+-- | Character that represents FalseClass.
+pattern FalseC = 70
+-- | Character that represents TrueClass.
+pattern TrueC = 84
+-- | Character that represents Array.
+pattern ArrayC = 91
+-- | Character that represents Fixnum.
+pattern FixnumC = 105
+-- | Character that represents Float.
+pattern FloatC = 102
+-- | Character that represents Hash.
+pattern HashC = 123
+-- | Character that represents IVar.
+pattern IVarC = 73
+-- | Character that represents Object link.
+pattern ObjectLinkC = 64
+-- | Character that represents String.
+pattern StringC = 34
+-- | Character that represents Symbol.
+pattern SymbolC = 58
+-- | Character that represents Symlink.
+pattern SymlinkC = 59
+
+-- | State that we must carry around during parsing.
 data Cache = Cache {
-    _objects :: Vector RubyObject
+    _objects :: !(Vector RubyObject)
     -- ^ object cache.
-  , _symbols :: Vector RubyObject
+  , _symbols :: !(Vector RubyObject)
     -- ^ symbol cache.
   } deriving Show
-
--- | Convey when unsupported object encountered.
-data Error
-  = Unsupported
-    -- ^ represents an unsupported Ruby object
-  deriving (Eq, Ord, Show)
 
 -- | Marshal monad endows the underlying Get monad with State.
 newtype Marshal a = Marshal {
@@ -59,30 +80,34 @@ data RubyObject
     -- ^ represents an invalid object
   deriving (Eq, Ord, Show)
 
--- See docs.ruby-lang.org for more information
--- http://docs.ruby-lang.org/en/2.1.0/marshal_rdoc.html#label-Stream+Format
+-- | Convey when unsupported object encountered.
+data Error
+  = Unsupported
+    -- ^ represents an unsupported Ruby object
+  deriving (Eq, Ord, Show)
 
--- | NilClass
-pattern NilC = 48
--- | FalseClass
-pattern FalseC = 70
--- | TrueClass
-pattern TrueC = 84
--- | Array
-pattern ArrayC = 91
--- | Fixnum
-pattern FixnumC = 105
--- | Float
-pattern FloatC = 102
--- | Hash
-pattern HashC = 123
--- | IVar
-pattern IVarC = 73
--- | Object link
-pattern ObjectLinkC = 64
--- | String
-pattern StringC = 34
--- | Symbol
-pattern SymbolC = 58
--- | Symlink
-pattern SymlinkC = 59
+class Ruby a where
+  toRuby   :: a -> RubyObject
+  fromRuby :: RubyObject -> Maybe a
+
+instance Ruby RubyObject where
+  toRuby = id
+  fromRuby = Just
+
+instance Ruby () where
+  toRuby _ = RNil
+  fromRuby = \case
+    RNil -> Just ()
+    _    -> Nothing
+
+instance Ruby Bool where
+  toRuby = RBool
+  fromRuby = \case
+    RBool x -> Just x
+    _       -> Nothing
+
+instance Ruby Int where
+  toRuby = RFixnum
+  fromRuby = \case
+    RFixnum x -> Just x
+    _         -> Nothing
