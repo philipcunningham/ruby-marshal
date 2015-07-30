@@ -3,14 +3,14 @@
 module Main where
 
 import Data.Ruby.Marshal (decode, fromRuby, RubyObject(..), REncoding(..))
-import System.Directory (getCurrentDirectory)
+import System.Directory  (getCurrentDirectory)
 
 import qualified Data.ByteString as BS
 import qualified Data.Map.Strict as DM
 
-lookupUserID :: (BS.ByteString, REncoding)
-             -> RubyObject
-             -> Maybe (BS.ByteString, REncoding)
+type IVar = (BS.ByteString, REncoding)
+
+lookupUserID :: IVar -> RubyObject -> Maybe IVar
 lookupUserID key hash = fromRuby hash >>= \map' ->
   DM.lookup key map'
 
