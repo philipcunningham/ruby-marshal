@@ -9,8 +9,8 @@ import qualified Data.ByteString as BS
 import qualified Data.Map.Strict as DM
 
 lookupUserID :: IVar -> RubyObject -> Maybe IVar
-lookupUserID key hash = fromRuby hash >>= \map' ->
-  DM.lookup key map'
+lookupUserID key hash = fromRuby hash >>= \cookie ->
+  DM.lookup key cookie
 
 main :: IO ()
 main = do
