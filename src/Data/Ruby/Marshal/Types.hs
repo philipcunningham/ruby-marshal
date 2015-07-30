@@ -27,10 +27,10 @@ import Control.Applicative
 import Data.Ruby.Marshal.RubyObject
 import Prelude
 
-import Control.Monad.State        (lift, MonadState, StateT)
-import Data.Serialize.Get         (Get)
+import Control.Monad.State (lift, MonadState, StateT)
+import Data.Serialize.Get  (Get)
 
-import qualified Data.Vector     as V
+import qualified Data.Vector as V
 
 -- | Marshal monad endows the underlying Get monad with State.
 newtype Marshal a = Marshal {

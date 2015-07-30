@@ -2,10 +2,8 @@
 
 module Main where
 
-import Data.Ruby.Marshal          (decode, RubyObject(..))
-import Data.Ruby.Marshal.Encoding (REncoding(..))
-import Data.Ruby.Marshal.Types    (fromRuby)
-import System.Directory           (getCurrentDirectory)
+import Data.Ruby.Marshal (decode, fromRuby, RubyObject(..), REncoding(..))
+import System.Directory (getCurrentDirectory)
 
 import qualified Data.ByteString as BS
 import qualified Data.Map.Strict as DM

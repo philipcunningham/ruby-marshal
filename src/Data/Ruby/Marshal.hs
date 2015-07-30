@@ -22,7 +22,7 @@ module Data.Ruby.Marshal (
 ) where
 
 import Data.Ruby.Marshal.Get
-import Data.Ruby.Marshal.Types (Cache(..), RubyObject(..), Marshal(..))
+import Data.Ruby.Marshal.Types
 
 import Control.Monad.State (evalStateT)
 import Data.Serialize      (runGet)

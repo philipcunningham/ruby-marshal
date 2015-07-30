@@ -3,7 +3,6 @@
 module MarshalSpec (spec) where
 
 import Data.Ruby.Marshal
-import Data.Ruby.Marshal.Encoding (REncoding(..))
 import Test.Hspec
 
 import qualified Data.ByteString as BS
