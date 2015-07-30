@@ -30,26 +30,22 @@ create an issue or open a pull request using the guidelines below.
 
 module Main where
 
-import Data.Monoid       (mconcat)
-import Data.Ruby.Marshal (decode, RubyObject(..))
+import Data.Ruby.Marshal
 import System.Directory  (getCurrentDirectory)
 
 import qualified Data.ByteString as BS
 import qualified Data.Map.Strict as DM
 
-key :: RubyObject
-key = RIVar (RString "user_id", "UTF-8")
-
-lookupId :: RubyObject -> Maybe RubyObject
-lookupId (RHash cookie) = DM.lookup key cookie
-lookupId _              = Nothing
+lookupUserID :: IVar -> RubyObject -> Maybe IVar
+lookupUserID key hash = fromRuby hash >>= \map' ->
+  DM.lookup key map'
 
 main :: IO ()
 main = do
   dir <- getCurrentDirectory
   rbs <- BS.readFile (mconcat [dir, "/test/bin/railsCookie.bin"])
   print $ case decode rbs of
-    Just cookie -> lookupId cookie
+    Just cookie -> lookupUserID ("user_id", UTF_8) cookie
     Nothing     -> Nothing
 ```
 
