@@ -123,7 +123,7 @@ data REncoding = ASCII_8BIT
                | Windows_31J
                | Windows_874
                | InvalidEncoding
-               deriving (Eq, Show)
+               deriving (Eq, Ord, Show)
 
 toEnc :: BS.ByteString -> REncoding
 toEnc "ASCII-8BIT"                 = ASCII_8BIT

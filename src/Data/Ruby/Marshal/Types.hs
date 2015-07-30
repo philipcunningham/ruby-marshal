@@ -96,13 +96,13 @@ data RubyObject
     -- ^ represents a @Symbol@
   | RError                 !Error
     -- ^ represents an invalid object
-  deriving (Eq, Show)
+  deriving (Eq, Ord, Show)
 
 -- | Convey when unsupported object encountered.
 data Error
   = Unsupported
     -- ^ represents an unsupported Ruby object
-  deriving (Eq, Show)
+  deriving (Eq, Ord, Show)
 
 -- | Transform plain Haskell values to RubyObjects and back.
 class Rubyable a where
