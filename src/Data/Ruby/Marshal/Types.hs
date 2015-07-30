@@ -21,11 +21,11 @@
 module Data.Ruby.Marshal.Types where
 
 import Control.Applicative
+import Data.Ruby.Marshal.Encoding
 import Prelude
 
 import Control.Arrow              ((***))
 import Control.Monad.State        (lift, MonadState, StateT)
-import Data.Ruby.Marshal.Encoding (REncoding(..))
 import Data.Serialize.Get         (Get)
 
 import qualified Data.ByteString as BS
@@ -158,6 +158,12 @@ instance Rubyable Float where
   fromRuby = \case
     RFloat  x -> Just x
     _         -> Nothing
+
+instance Rubyable (BS.ByteString, REncoding) where
+  toRuby (x, y) = RIVar (RString x, y)
+  fromRuby = \case
+    RIVar (RString x, y) -> Just (x, y)
+    _                    -> Nothing
 
 -- map like
 
