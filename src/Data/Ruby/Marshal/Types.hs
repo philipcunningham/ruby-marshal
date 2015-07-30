@@ -165,6 +165,23 @@ instance Rubyable (BS.ByteString, REncoding) where
     RIVar (RString x, y) -> Just (x, y)
     _                    -> Nothing
 
+-- nil like
+
+instance Rubyable a => Rubyable (Maybe a) where
+  toRuby = \case
+    Just x  -> toRuby x
+    Nothing -> RNil
+
+  fromRuby = \case
+    RNil -> Just Nothing
+    x    -> fromRuby x
+
+-- array like
+
+instance Rubyable a => Rubyable [a] where
+  toRuby = toRuby . V.fromList
+  fromRuby x = V.toList <$> fromRuby x
+
 -- map like
 
 instance (Rubyable a, Rubyable b) => Rubyable [(a, b)] where
