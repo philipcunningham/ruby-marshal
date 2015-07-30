@@ -31,6 +31,8 @@ import qualified Data.ByteString as BS
 import qualified Data.Map.Strict as DM
 import qualified Data.Vector     as V
 
+type IVar = (BS.ByteString, REncoding)
+
 -- | Representation of a Ruby object.
 data RubyObject
   = RNil
