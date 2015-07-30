@@ -119,12 +119,12 @@ getFixnum = marshalLabel "Fixnum" $ do
       if x >= 0 && x <= 127 then return (x - 256) else return x
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Float.html Float>.
-getFloat :: Marshal Double
+getFloat :: Marshal Float
 getFloat = do
   s <- getString
   x <- case readMaybe . toS $ s of
     Just float -> return float
-    Nothing    -> fail "getFloat"
+    Nothing    -> fail "getFloat: expected float"
   marshalLabel "Float" $ return x
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Hash.html Hash>.

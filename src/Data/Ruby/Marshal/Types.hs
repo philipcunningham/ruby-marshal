@@ -89,7 +89,7 @@ data RubyObject
     -- ^ represents an @IVar@
   | RString                !BS.ByteString
     -- ^ represents a @String@
-  | RFloat {-# UNPACK #-}  !Double
+  | RFloat {-# UNPACK #-}  !Float
     -- ^ represents a @Float@
   | RSymbol                !BS.ByteString
     -- ^ represents a @Symbol@
@@ -145,6 +145,12 @@ instance (Rubyable a, Rubyable b) => Rubyable (V.Vector (a, b)) where
   fromRuby = \case
     RHash x -> V.mapM (\(k, v) -> (,) <$> fromRuby k <*> fromRuby v) x
     _       -> Nothing
+
+instance Rubyable BS.ByteString where
+  toRuby = RString
+  fromRuby = \case
+    RString x -> Just x
+    _         -> Nothing
 
 -- map like
 
