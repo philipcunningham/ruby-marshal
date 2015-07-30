@@ -150,6 +150,13 @@ instance Rubyable BS.ByteString where
   toRuby = RString
   fromRuby = \case
     RString x -> Just x
+    RSymbol x -> Just x
+    _         -> Nothing
+
+instance Rubyable Float where
+  toRuby = RFloat
+  fromRuby = \case
+    RFloat  x -> Just x
     _         -> Nothing
 
 -- map like
