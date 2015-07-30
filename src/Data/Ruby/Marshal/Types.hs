@@ -147,9 +147,8 @@ instance (Rubyable a, Rubyable b) => Rubyable (V.Vector (a, b)) where
     _       -> Nothing
 
 instance Rubyable BS.ByteString where
-  toRuby = RString
+  toRuby = RSymbol
   fromRuby = \case
-    RString x -> Just x
     RSymbol x -> Just x
     _         -> Nothing
 
