@@ -23,9 +23,10 @@ module Data.Ruby.Marshal.Types where
 import Control.Applicative
 import Prelude
 
-import Control.Arrow       ((***))
-import Control.Monad.State (lift, MonadState, StateT)
-import Data.Serialize.Get  (Get)
+import Control.Arrow              ((***))
+import Control.Monad.State        (lift, MonadState, StateT)
+import Data.Ruby.Marshal.Encoding (REncoding(..))
+import Data.Serialize.Get         (Get)
 
 import qualified Data.ByteString as BS
 import qualified Data.Map.Strict as DM
@@ -85,7 +86,7 @@ data RubyObject
     -- ^ represents an @Array@
   | RHash                  !(V.Vector (RubyObject, RubyObject))
     -- ^ represents an @Hash@
-  | RIVar                  !(RubyObject, BS.ByteString)
+  | RIVar                  !(RubyObject, REncoding)
     -- ^ represents an @IVar@
   | RString                !BS.ByteString
     -- ^ represents a @String@
@@ -101,7 +102,7 @@ data RubyObject
 data Error
   = Unsupported
     -- ^ represents an unsupported Ruby object
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Show)
 
 -- | Transform plain Haskell values to RubyObjects and back.
 class Rubyable a where

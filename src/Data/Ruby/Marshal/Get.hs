@@ -34,6 +34,7 @@ module Data.Ruby.Marshal.Get (
 ) where
 
 import Control.Applicative
+import Data.Ruby.Marshal.Encoding
 import Data.Ruby.Marshal.Internal.Int
 import Data.Ruby.Marshal.Types
 
@@ -135,7 +136,7 @@ getHash k v = do
   marshalLabel "Hash" $ return x
 
 -- | Deserialises <http://docs.ruby-lang.org/en/2.1.0/marshal_rdoc.html#label-Instance+Variables Instance Variables>.
-getIVar :: Marshal RubyObject -> Marshal (RubyObject, BS.ByteString)
+getIVar :: Marshal RubyObject -> Marshal (RubyObject, REncoding)
 getIVar g = do
   string <- g
   length <- getFixnum
@@ -145,11 +146,11 @@ getIVar g = do
        denote <- g
        case symbol of
          RSymbol "E" -> case denote of
-           RBool True  -> cacheAndReturn string "UTF-8"
-           RBool False -> cacheAndReturn string "US-ASCII"
+           RBool True  -> cacheAndReturn string UTF_8
+           RBool False -> cacheAndReturn string US_ASCII
            _           -> fail "getIVar: expected bool"
          RSymbol "encoding" -> case denote of
-           RString enc -> cacheAndReturn string enc
+           RString enc -> cacheAndReturn string (toEnc enc)
            _           -> fail "getIVar: expected string"
          _          -> fail "getIVar: invalid ivar"
   where
@@ -159,7 +160,7 @@ getIVar g = do
       marshalLabel "IVar" $ return result
 
 -- | Pulls an Instance Variable out of the object cache.
-getObjectLink :: Marshal (RubyObject, BS.ByteString)
+getObjectLink :: Marshal (RubyObject, REncoding)
 getObjectLink = do
   index <- getFixnum
   maybeObject <- readObject index
