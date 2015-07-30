@@ -16,9 +16,14 @@
 --
 --------------------------------------------------------------------
 
-module Data.Ruby.Marshal.RubyObject where
+module Data.Ruby.Marshal.RubyObject (
+    module Data.Ruby.Marshal.Encoding
+  , module Data.Ruby.Marshal.RubyObject
+) where
 
+import Control.Applicative
 import Data.Ruby.Marshal.Encoding
+import Prelude
 
 import Control.Arrow ((***))
 

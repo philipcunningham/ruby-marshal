@@ -32,6 +32,23 @@ import Data.Serialize.Get         (Get)
 
 import qualified Data.Vector     as V
 
+-- | Marshal monad endows the underlying Get monad with State.
+newtype Marshal a = Marshal {
+  runMarshal :: StateT Cache Get a
+} deriving (Functor, Applicative, Monad, MonadState Cache)
+
+-- | Lift Get monad into Marshal monad.
+liftMarshal :: Get a -> Marshal a
+liftMarshal = Marshal . lift
+
+-- | State that we must carry around during parsing.
+data Cache = Cache {
+    _objects :: !(V.Vector RubyObject)
+    -- ^ object cache.
+  , _symbols :: !(V.Vector RubyObject)
+    -- ^ symbol cache.
+} deriving Show
+
 -- | Character that represents NilClass.
 pattern NilC = 48
 -- | Character that represents FalseClass.
@@ -56,20 +73,3 @@ pattern StringC = 34
 pattern SymbolC = 58
 -- | Character that represents Symlink.
 pattern SymlinkC = 59
-
--- | State that we must carry around during parsing.
-data Cache = Cache {
-    _objects :: !(V.Vector RubyObject)
-    -- ^ object cache.
-  , _symbols :: !(V.Vector RubyObject)
-    -- ^ symbol cache.
-  } deriving Show
-
--- | Marshal monad endows the underlying Get monad with State.
-newtype Marshal a = Marshal {
-  runMarshal :: StateT Cache Get a
-} deriving (Functor, Applicative, Monad, MonadState Cache)
-
--- | Lift Get monad into Marshal monad.
-liftMarshal :: Get a -> Marshal a
-liftMarshal = Marshal . lift
