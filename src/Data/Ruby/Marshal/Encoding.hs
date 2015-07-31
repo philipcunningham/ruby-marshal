@@ -15,6 +15,7 @@
 --------------------------------------------------------------------
 
 module Data.Ruby.Marshal.Encoding (
+    -- * The @REncoding@ type
     fromEnc
   , toEnc
   , REncoding(..)
