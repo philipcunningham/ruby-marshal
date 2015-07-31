@@ -16,6 +16,7 @@
 --------------------------------------------------------------------
 
 module Data.Ruby.Marshal.Types (
+    -- * Re-exported modules
     module Data.Ruby.Marshal.RubyObject
   , module Data.Ruby.Marshal.Types
 ) where
