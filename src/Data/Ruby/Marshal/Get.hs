@@ -34,15 +34,15 @@ module Data.Ruby.Marshal.Get (
 ) where
 
 import Control.Applicative
-import Data.Ruby.Marshal.Encoding
 import Data.Ruby.Marshal.Internal.Int
 import Data.Ruby.Marshal.Types
 
-import Control.Monad       (guard, liftM2)
-import Control.Monad.State (get, gets, put)
-import Data.Serialize.Get  (Get, getBytes, getTwoOf, label)
-import Data.String.Conv    (toS)
-import Text.Read           (readMaybe)
+import Control.Monad              (guard, liftM2)
+import Control.Monad.State        (get, gets, put)
+import Data.Ruby.Marshal.Encoding (toEnc)
+import Data.Serialize.Get         (Get, getBytes, getTwoOf, label)
+import Data.String.Conv           (toS)
+import Text.Read                  (readMaybe)
 
 import qualified Data.ByteString as BS
 import qualified Data.Vector     as V
