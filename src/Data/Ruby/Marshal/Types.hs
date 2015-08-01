@@ -16,9 +16,23 @@
 --------------------------------------------------------------------
 
 module Data.Ruby.Marshal.Types (
-    -- * Re-exported modules
-    module Data.Ruby.Marshal.RubyObject
-  , module Data.Ruby.Marshal.Types
+  -- * Marshal Monad
+    Marshal
+  -- * Patterns
+  , pattern NilC
+  , pattern FalseC
+  , pattern TrueC
+  , pattern ArrayC
+  , pattern FixnumC
+  , pattern FloatC
+  , pattern HashC
+  , pattern IVarC
+  , pattern ObjectLinkC
+  , pattern StringC
+  , pattern SymbolC
+  , pattern SymlinkC
+  -- * Re-exported modules
+  , module Data.Ruby.Marshal.RubyObject
 ) where
 
 import Control.Applicative
