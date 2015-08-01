@@ -8,7 +8,7 @@
 -- Stability :  experimental
 -- Portability: portable
 --
--- Helper module for parsing Int.
+-- Parsers for signed and unsigned integrals.
 --
 --------------------------------------------------------------------
 

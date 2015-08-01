@@ -10,7 +10,7 @@
 -- Stability :  experimental
 -- Portability: portable
 --
--- Encoding types.
+-- Ruby encoding types.
 --
 --------------------------------------------------------------------
 

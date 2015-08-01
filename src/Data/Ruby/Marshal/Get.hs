@@ -13,7 +13,7 @@
 -- Stability :  experimental
 -- Portability: portable
 --
--- Ruby Marshal deserialiser using @Data.Serialize@.
+-- Parsers for Ruby Marshal format.
 --
 --------------------------------------------------------------------
 

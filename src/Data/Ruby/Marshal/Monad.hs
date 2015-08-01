@@ -1,10 +1,25 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
+--------------------------------------------------------------------
+-- |
+-- Module    : Data.Ruby.Marshal.Monad
+-- Copyright : (c) Philip Cunningham, 2015
+-- License   : MIT
+--
+-- Maintainer:  802389+philipcunningham@users.noreply.github.com
+-- Stability :  experimental
+-- Portability: portable
+--
+-- Marshal monad provides an object cache over the Get monad.
+--
+--------------------------------------------------------------------
+
 module Data.Ruby.Marshal.Monad where
 
 import Control.Monad.State          (get, gets, lift, put, MonadState, StateT)
 import Data.Ruby.Marshal.RubyObject (RubyObject(..))
 import Data.Serialize.Get           (Get)
+import Data.Vector                  (Vector)
 
 import qualified Data.Vector as V
 
@@ -17,11 +32,11 @@ newtype Marshal a = Marshal {
 liftMarshal :: Get a -> Marshal a
 liftMarshal = Marshal . lift
 
--- | State that we must carry around during parsing.
+-- | State that we must carry around during deserialisation.
 data Cache = Cache {
-    objects :: !(V.Vector RubyObject)
+    objects :: !(Vector RubyObject)
     -- ^ object cache.
-  , symbols :: !(V.Vector RubyObject)
+  , symbols :: !(Vector RubyObject)
     -- ^ symbol cache.
 } deriving Show
 
@@ -30,7 +45,7 @@ emptyCache :: Cache
 emptyCache = Cache { symbols = V.empty, objects = V.empty }
 
 -- | Look up value in cache.
-readCache :: Int -> (Cache -> V.Vector RubyObject) -> Marshal (Maybe RubyObject)
+readCache :: Int -> (Cache -> Vector RubyObject) -> Marshal (Maybe RubyObject)
 readCache index f = gets f >>= \cache -> return $ cache V.!? index
 
 -- | Look up object in object cache.
