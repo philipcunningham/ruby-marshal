@@ -29,15 +29,17 @@ data Cache = Cache {
 emptyCache :: Cache
 emptyCache = Cache { symbols = V.empty, objects = V.empty }
 
--- | Look up object in our object cache.
-readObject :: Int -> Marshal (Maybe RubyObject)
-readObject index = gets objects >>= \objectCache ->
-  return $ objectCache V.!? index
+-- | Look up value in cache.
+readCache :: Int -> (Cache -> V.Vector RubyObject) -> Marshal (Maybe RubyObject)
+readCache index f = gets f >>= \cache -> return $ cache V.!? index
 
--- | Look up a symbol in our symbol cache.
+-- | Look up object in object cache.
+readObject :: Int -> Marshal (Maybe RubyObject)
+readObject index = readCache index objects
+
+-- | Look up a symbol in symbol cache.
 readSymbol :: Int -> Marshal (Maybe RubyObject)
-readSymbol index = gets symbols >>= \symbolCache ->
-  return $ symbolCache V.!? index
+readSymbol index = readCache index symbols
 
 -- | Write an object to the appropriate cache.
 writeCache :: RubyObject -> Marshal ()
