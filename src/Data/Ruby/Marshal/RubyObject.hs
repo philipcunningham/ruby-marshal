@@ -17,15 +17,15 @@
 --------------------------------------------------------------------
 
 module Data.Ruby.Marshal.RubyObject (
-    module Data.Ruby.Marshal.Encoding
-  , module Data.Ruby.Marshal.RubyObject
+    REncoding(..)
+  , RubyObject(..)
 ) where
 
 import Control.Applicative
-import Data.Ruby.Marshal.Encoding
 import Prelude
 
-import Control.Arrow ((***))
+import Control.Arrow              ((***))
+import Data.Ruby.Marshal.Encoding (REncoding(..))
 
 import qualified Data.ByteString as BS
 import qualified Data.Map.Strict as DM
@@ -51,18 +51,12 @@ data RubyObject
     -- ^ represents a @Float@
   | RSymbol                !BS.ByteString
     -- ^ represents a @Symbol@
-  | RError                 !Error
+  | Unsupported
     -- ^ represents an invalid object
   deriving (Eq, Ord, Show)
 
 -- | Handy type alias for IVars.
 type IVar = (BS.ByteString, REncoding)
-
--- | Convey when unsupported object encountered.
-data Error
-  = Unsupported
-    -- ^ represents an unsupported Ruby object
-  deriving (Eq, Ord, Show)
 
 -- | Transform plain Haskell values to RubyObjects and back.
 class Ruby a where

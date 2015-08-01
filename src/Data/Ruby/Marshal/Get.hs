@@ -75,7 +75,7 @@ getRubyObject = getMarshalVersion >> go
       StringC     -> RString <$> getString
       SymbolC     -> RSymbol <$> getSymbol
       SymlinkC    -> RSymbol <$> getSymlink
-      _           -> return $ RError Unsupported
+      _           -> return $ Unsupported
 
 --------------------------------------------------------------------
 -- Ancillary functions.
