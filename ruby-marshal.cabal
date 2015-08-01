@@ -40,9 +40,9 @@ library
       Data.Ruby.Marshal
     , Data.Ruby.Marshal.Encoding
     , Data.Ruby.Marshal.Get
+    , Data.Ruby.Marshal.Int
     , Data.Ruby.Marshal.RubyObject
     , Data.Ruby.Marshal.Types
-    , Data.Ruby.Marshal.Internal.Int
 
 test-suite spec
   ghc-options:

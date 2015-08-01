@@ -1,6 +1,6 @@
 --------------------------------------------------------------------
 -- |
--- Module    : Data.Ruby.Marshal.Internal.Int
+-- Module    : Data.Ruby.Marshal.Int
 -- Copyright : (c) Philip Cunningham, 2015
 -- License   : MIT
 --
@@ -12,7 +12,7 @@
 --
 --------------------------------------------------------------------
 
-module Data.Ruby.Marshal.Internal.Int (
+module Data.Ruby.Marshal.Int (
   -- * Signed integrals
     getInt8
   , getInt16le

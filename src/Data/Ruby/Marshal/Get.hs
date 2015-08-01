@@ -23,8 +23,9 @@ module Data.Ruby.Marshal.Get (
 ) where
 
 import Control.Applicative
-import Data.Ruby.Marshal.Internal.Int
+import Data.Ruby.Marshal.Int
 import Data.Ruby.Marshal.Types
+import Prelude
 
 import Control.Monad              (liftM2)
 import Data.Ruby.Marshal.Encoding (toEnc)
@@ -35,8 +36,6 @@ import Text.Read                  (readMaybe)
 
 import qualified Data.ByteString as BS
 import qualified Data.Vector     as V
-
-import Prelude hiding (length)
 
 --------------------------------------------------------------------
 -- Top-level functions.
