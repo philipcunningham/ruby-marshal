@@ -31,12 +31,15 @@ create an issue or open a pull request using the guidelines below.
 module Main where
 
 import Data.Ruby.Marshal
-import System.Directory  (getCurrentDirectory)
+import Data.ByteString  (ByteString)
+import System.Directory (getCurrentDirectory)
 
 import qualified Data.ByteString as BS
 import qualified Data.Map.Strict as DM
 
-lookupUserID :: IVar -> RubyObject -> Maybe IVar
+lookupUserID :: (ByteString, RubyStringEncoding)
+             -> RubyObject
+             -> Maybe (ByteString, RubyStringEncoding)
 lookupUserID key hash = fromRuby hash >>= \cookie ->
   DM.lookup key cookie
 
