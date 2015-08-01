@@ -44,8 +44,8 @@ import qualified Data.Vector     as V
 -- | Deserialises Marshal version.
 getMarshalVersion :: Marshal (Word8, Word8)
 getMarshalVersion = liftAndLabel "Marshal Version" $
-  getTwoOf getWord8 getWord8 >>= \case
-    (4, 8) -> return (4, 8)
+  getTwoOf getWord8 getWord8 >>= \version -> case version of
+    (4, 8) -> return version
     _      -> fail "marshal version unsupported"
 
 -- | Deserialises a subset of Ruby objects.
