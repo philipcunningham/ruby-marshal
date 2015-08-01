@@ -27,9 +27,9 @@ import Data.Ruby.Marshal.Get
 import Data.Ruby.Marshal.RubyObject
 import Data.Ruby.Marshal.Types
 
-import Control.Monad.State     (evalStateT)
-import Data.Ruby.Marshal.Monad (emptyCache, runMarshal)
-import Data.Serialize          (runGet)
+import Control.Monad.State.Strict (evalStateT)
+import Data.Ruby.Marshal.Monad    (emptyCache, runMarshal)
+import Data.Serialize             (runGet)
 
 import qualified Data.ByteString as BS
 

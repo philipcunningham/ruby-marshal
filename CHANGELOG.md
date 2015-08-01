@@ -12,6 +12,7 @@
 - Added more type safety by extracting ADT of all possible Ruby string
   encodings.
 - Re-ordered parser to try parsing simpler objects first.
+- Used strict State monad instead of non-strict.
 
 # 0.0.1
 
