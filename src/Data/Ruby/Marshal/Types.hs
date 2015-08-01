@@ -19,6 +19,10 @@ module Data.Ruby.Marshal.Types (
     Marshal
   -- * Internal cache
   , Cache
+  -- * Ruby string encodings
+  , REncoding(..)
+  -- * Ruby object
+  , RubyObject(..)
   -- * Patterns
   , pattern NilChar
   , pattern FalseChar
@@ -32,12 +36,11 @@ module Data.Ruby.Marshal.Types (
   , pattern StringChar
   , pattern SymbolChar
   , pattern SymlinkChar
-  -- * Re-exported modules
-  , module Data.Ruby.Marshal.RubyObject
 ) where
 
+import Data.Ruby.Marshal.Encoding
+import Data.Ruby.Marshal.Monad
 import Data.Ruby.Marshal.RubyObject
-import Data.Ruby.Marshal.Monad (Cache, Marshal)
 
 -- | Character that represents NilCharlass.
 pattern NilChar = 48

@@ -16,11 +16,7 @@
 --
 --------------------------------------------------------------------
 
-module Data.Ruby.Marshal.RubyObject (
-    IVar
-  , REncoding(..)
-  , RubyObject(..)
-) where
+module Data.Ruby.Marshal.RubyObject where
 
 import Control.Applicative
 import Prelude
@@ -55,9 +51,6 @@ data RubyObject
   | Unsupported
     -- ^ represents an invalid object
   deriving (Eq, Ord, Show)
-
--- | Handy type alias for IVars.
-type IVar = (BS.ByteString, REncoding)
 
 -- | Transform plain Haskell values to RubyObjects and back.
 class Ruby a where
