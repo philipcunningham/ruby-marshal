@@ -1,4 +1,3 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE PatternSynonyms #-}
 
 --------------------------------------------------------------------
@@ -18,70 +17,49 @@
 module Data.Ruby.Marshal.Types (
   -- * Marshal Monad
     Marshal
+  -- * Internal cache
+  , Cache
   -- * Patterns
-  , pattern NilC
-  , pattern FalseC
-  , pattern TrueC
-  , pattern ArrayC
-  , pattern FixnumC
-  , pattern FloatC
-  , pattern HashC
-  , pattern IVarC
-  , pattern ObjectLinkC
-  , pattern StringC
-  , pattern SymbolC
-  , pattern SymlinkC
+  , pattern NilChar
+  , pattern FalseChar
+  , pattern TrueChar
+  , pattern ArrayChar
+  , pattern FixnumChar
+  , pattern FloatChar
+  , pattern HashChar
+  , pattern IVarChar
+  , pattern ObjectLinkChar
+  , pattern StringChar
+  , pattern SymbolChar
+  , pattern SymlinkChar
   -- * Re-exported modules
   , module Data.Ruby.Marshal.RubyObject
 ) where
 
-import Control.Applicative
 import Data.Ruby.Marshal.RubyObject
-import Prelude
+import Data.Ruby.Marshal.Monad (Cache, Marshal)
 
-import Control.Monad.State (lift, MonadState, StateT)
-import Data.Serialize.Get  (Get)
-
-import qualified Data.Vector as V
-
--- | Marshal monad endows the underlying Get monad with State.
-newtype Marshal a = Marshal {
-  runMarshal :: StateT Cache Get a
-} deriving (Functor, Applicative, Monad, MonadState Cache)
-
--- | Lift Get monad into Marshal monad.
-liftMarshal :: Get a -> Marshal a
-liftMarshal = Marshal . lift
-
--- | State that we must carry around during parsing.
-data Cache = Cache {
-    _objects :: !(V.Vector RubyObject)
-    -- ^ object cache.
-  , _symbols :: !(V.Vector RubyObject)
-    -- ^ symbol cache.
-} deriving Show
-
--- | Character that represents NilClass.
-pattern NilC = 48
+-- | Character that represents NilCharlass.
+pattern NilChar = 48
 -- | Character that represents FalseClass.
-pattern FalseC = 70
+pattern FalseChar = 70
 -- | Character that represents TrueClass.
-pattern TrueC = 84
+pattern TrueChar = 84
 -- | Character that represents Array.
-pattern ArrayC = 91
+pattern ArrayChar = 91
 -- | Character that represents Fixnum.
-pattern FixnumC = 105
+pattern FixnumChar = 105
 -- | Character that represents Float.
-pattern FloatC = 102
+pattern FloatChar = 102
 -- | Character that represents Hash.
-pattern HashC = 123
+pattern HashChar = 123
 -- | Character that represents IVar.
-pattern IVarC = 73
+pattern IVarChar = 73
 -- | Character that represents Object link.
-pattern ObjectLinkC = 64
+pattern ObjectLinkChar = 64
 -- | Character that represents String.
-pattern StringC = 34
+pattern StringChar = 34
 -- | Character that represents Symbol.
-pattern SymbolC = 58
+pattern SymbolChar = 58
 -- | Character that represents Symlink.
-pattern SymlinkC = 59
+pattern SymlinkChar = 59

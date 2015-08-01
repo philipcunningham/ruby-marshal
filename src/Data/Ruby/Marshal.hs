@@ -24,11 +24,11 @@ module Data.Ruby.Marshal (
 import Data.Ruby.Marshal.Get
 import Data.Ruby.Marshal.Types
 
-import Control.Monad.State (evalStateT)
-import Data.Serialize      (runGet)
+import Control.Monad.State     (evalStateT)
+import Data.Ruby.Marshal.Monad (emptyCache, runMarshal)
+import Data.Serialize          (runGet)
 
 import qualified Data.ByteString as BS
-import qualified Data.Vector     as V
 
 -- | Deserialises a subset of Ruby objects serialised with Marshal, Ruby's
 -- built-in binary serialisation format.
@@ -45,10 +45,6 @@ decodeEither :: BS.ByteString
              -> Either String RubyObject
              -- ^ Error message or de-serialisation result
 decodeEither = runGet (evalStateT (runMarshal getRubyObject) emptyCache)
-
--- | Constructs an empty cache to store symbols and objects.
-emptyCache :: Cache
-emptyCache = Cache { _symbols = V.empty, _objects = V.empty }
 
 -- | Converts an Either to a Maybe.
 hush :: Either a b -> Maybe b

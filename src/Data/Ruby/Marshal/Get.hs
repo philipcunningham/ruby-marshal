@@ -29,6 +29,7 @@ import Data.Ruby.Marshal.Types
 import Control.Monad              (liftM2)
 import Control.Monad.State        (get, gets, put)
 import Data.Ruby.Marshal.Encoding (toEnc)
+import Data.Ruby.Marshal.Monad    (_objects, _symbols, liftMarshal)
 import Data.Serialize.Get         (Get, getBytes, getTwoOf, label)
 import Data.String.Conv           (toS)
 import Text.Read                  (readMaybe)
@@ -52,19 +53,19 @@ getRubyObject = getMarshalVersion >> go
   where
     go :: Marshal RubyObject
     go = liftMarshal getWord8 >>= \case
-      NilC        -> return RNil
-      TrueC       -> return $ RBool True
-      FalseC      -> return $ RBool False
-      ArrayC      -> RArray  <$> getArray go
-      FixnumC     -> RFixnum <$> getFixnum
-      FloatC      -> RFloat  <$> getFloat
-      HashC       -> RHash   <$> getHash go go
-      IVarC       -> RIVar   <$> getIVar go
-      ObjectLinkC -> RIVar   <$> getObjectLink
-      StringC     -> RString <$> getString
-      SymbolC     -> RSymbol <$> getSymbol
-      SymlinkC    -> RSymbol <$> getSymlink
-      _           -> return $ Unsupported
+      NilChar        -> return RNil
+      TrueChar       -> return $ RBool True
+      FalseChar      -> return $ RBool False
+      ArrayChar      -> RArray  <$> getArray go
+      FixnumChar     -> RFixnum <$> getFixnum
+      FloatChar      -> RFloat  <$> getFloat
+      HashChar       -> RHash   <$> getHash go go
+      IVarChar       -> RIVar   <$> getIVar go
+      ObjectLinkChar -> RIVar   <$> getObjectLink
+      StringChar     -> RString <$> getString
+      SymbolChar     -> RSymbol <$> getSymbol
+      SymlinkChar    -> RSymbol <$> getSymlink
+      _              -> return $ Unsupported
 
 --------------------------------------------------------------------
 -- Ancillary functions.
