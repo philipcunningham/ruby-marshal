@@ -17,7 +17,8 @@
 --------------------------------------------------------------------
 
 module Data.Ruby.Marshal.RubyObject (
-    REncoding(..)
+    IVar
+  , REncoding(..)
   , RubyObject(..)
 ) where
 
