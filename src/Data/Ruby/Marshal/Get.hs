@@ -44,7 +44,7 @@ import qualified Data.Vector     as V
 -- | Deserialises Marshal version.
 getMarshalVersion :: Marshal (Word8, Word8)
 getMarshalVersion = marshalLabel "Marshal Version" $
-  getTwoOf getWord8 getWord8
+  liftMarshal $ getTwoOf getWord8 getWord8
 
 -- | Deserialises a subset of Ruby objects.
 getRubyObject :: Marshal RubyObject
@@ -71,14 +71,14 @@ getRubyObject = getMarshalVersion >> go
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Array.html Array>.
 getArray :: Marshal a -> Marshal (V.Vector a)
-getArray g = do
+getArray g = marshalLabel "Fixnum" $ do
   n <- getFixnum
   x <- V.replicateM n g
-  marshalLabel "Array" $ return x
+  return x
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Fixnum.html Fixnum>.
 getFixnum :: Marshal Int
-getFixnum = marshalLabel "Fixnum" $ do
+getFixnum = liftMarshal $ label "Fixnum" $ do
   x <- getInt8
   if | x ==  0   -> fromIntegral <$> return x
      | x ==  1   -> fromIntegral <$> getWord8
@@ -100,23 +100,23 @@ getFixnum = marshalLabel "Fixnum" $ do
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Float.html Float>.
 getFloat :: Marshal Float
-getFloat = do
+getFloat = marshalLabel "Float" $ do
   s <- getString
   x <- case readMaybe . toS $ s of
     Just float -> return float
     Nothing    -> fail "getFloat: expected float"
-  marshalLabel "Float" $ return x
+  return x
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Hash.html Hash>.
 getHash :: Marshal a -> Marshal b -> Marshal (V.Vector (a, b))
-getHash k v = do
+getHash k v = marshalLabel "Hash" $ do
   n <- getFixnum
   x <- V.replicateM n (liftM2 (,) k v)
-  marshalLabel "Hash" $ return x
+  return x
 
 -- | Deserialises <http://docs.ruby-lang.org/en/2.1.0/marshal_rdoc.html#label-Instance+Variables Instance Variables>.
 getIVar :: Marshal RubyObject -> Marshal (RubyObject, REncoding)
-getIVar g = do
+getIVar g = marshalLabel "IVar" $ do
   str <- g
   len <- getFixnum
   if | len /= 1 -> fail "getIvar: expected single character"
@@ -135,11 +135,11 @@ getIVar g = do
   where
     return' result = do
       writeCache $ RIVar result
-      marshalLabel "IVar" $ return result
+      return result
 
 -- | Pulls an Instance Variable out of the object cache.
 getObjectLink :: Marshal (RubyObject, REncoding)
-getObjectLink = do
+getObjectLink = marshalLabel "ObjectLink" $ do
   index <- getFixnum
   maybeObject <- readObject index
   case maybeObject of
@@ -148,30 +148,30 @@ getObjectLink = do
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/String.html String>.
 getString :: Marshal BS.ByteString
-getString = do
+getString = marshalLabel "RawString" $ do
   n <- getFixnum
   x <- liftMarshal $ getBytes n
-  marshalLabel "RawString" $ return x
+  return x
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Symbol.html Symbol>.
 getSymbol :: Marshal BS.ByteString
-getSymbol = do
+getSymbol = marshalLabel "Symbol" $ do
   x <- getString
   writeCache $ RSymbol x
-  marshalLabel "Symbol" $ return x
+  return x
 
 -- | Pulls a Symbol out of the symbol cache.
 getSymlink :: Marshal BS.ByteString
-getSymlink = do
+getSymlink = marshalLabel "Symlink" $ do
   index <- getFixnum
   maybeObject <- readSymbol index
   case maybeObject of
     Just (RSymbol bs) -> return bs
-    _                 -> fail "getSymlink"
+    _                 -> fail "invalid symlink"
 
 --------------------------------------------------------------------
 -- Utility functions.
 
 -- | Lift label into Marshal monad.
-marshalLabel :: String -> Get a -> Marshal a
-marshalLabel x y = liftMarshal $ label x y
+marshalLabel :: String -> Marshal a -> Marshal a
+marshalLabel x y = y >>= \y' -> liftMarshal $ label x (return y')
