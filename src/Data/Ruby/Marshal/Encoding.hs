@@ -124,7 +124,7 @@ data REncoding = ASCII_8BIT
                | Windows_1258
                | Windows_31J
                | Windows_874
-               | InvalidEncoding
+               | UnsupportedEncoding
                deriving (Eq, Ord, Show)
 
 -- | Lifts encoding strings into encoding ADT.
@@ -229,7 +229,7 @@ toEnc "ISO-2022-JP-KDDI"           = ISO_2022_JP_KDDI
 toEnc "stateless-ISO-2022-JP-KDDI" = Stateless_ISO_2022_JP_KDDI
 toEnc "UTF8-SoftBank"              = UTF8_SoftBank
 toEnc "SJIS-SoftBank"              = SJIS_SoftBank
-toEnc _                            = InvalidEncoding
+toEnc _                            = UnsupportedEncoding
 
 -- | Lowers encoding ADT into an encoding string.
 fromEnc :: REncoding -> BS.ByteString
@@ -333,4 +333,4 @@ fromEnc ISO_2022_JP_KDDI           = "ISO-2022-JP-KDDI"
 fromEnc Stateless_ISO_2022_JP_KDDI = "stateless-ISO-2022-JP-KDDI"
 fromEnc UTF8_SoftBank              = "UTF8-SoftBank"
 fromEnc SJIS_SoftBank              = "SJIS-SoftBank"
-fromEnc _                          = "InvalidEncoding"
+fromEnc _                          = "UnsupportedEncoding"
