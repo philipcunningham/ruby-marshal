@@ -18,6 +18,7 @@
 --------------------------------------------------------------------
 
 module Data.Ruby.Marshal.Get (
+    -- * Ruby Marshal parsers
     getMarshalVersion
   , getRubyObject
 ) where
