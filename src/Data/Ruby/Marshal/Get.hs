@@ -124,16 +124,15 @@ getIVar g = do
        denote <- g
        case symbol of
          RSymbol "E" -> case denote of
-           RBool True  -> cacheAndReturn str UTF_8
-           RBool False -> cacheAndReturn str US_ASCII
+           RBool True  -> return' (str, UTF_8)
+           RBool False -> return' (str, US_ASCII)
            _           -> fail "getIVar: expected bool"
          RSymbol "encoding" -> case denote of
-           RString enc -> cacheAndReturn str (toEnc enc)
+           RString enc -> return' (str, (toEnc enc))
            _           -> fail "getIVar: expected string"
          _          -> fail "getIVar: invalid ivar"
   where
-    cacheAndReturn string enc = do
-      let result = (string, enc)
+    return' result = do
       writeCache $ RIVar result
       marshalLabel "IVar" $ return result
 
