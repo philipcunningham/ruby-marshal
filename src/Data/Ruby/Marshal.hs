@@ -17,7 +17,6 @@ module Data.Ruby.Marshal (
     decode
   , decodeEither
   -- * Re-exported modules
-  , module Data.Ruby.Marshal.Get
   , module Data.Ruby.Marshal.Types
 ) where
 

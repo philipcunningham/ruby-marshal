@@ -27,9 +27,8 @@ import Data.Ruby.Marshal.Internal.Int
 import Data.Ruby.Marshal.Types
 
 import Control.Monad              (liftM2)
-import Control.Monad.State        (get, gets, put)
 import Data.Ruby.Marshal.Encoding (toEnc)
-import Data.Ruby.Marshal.Monad    (_objects, _symbols, liftMarshal)
+import Data.Ruby.Marshal.Monad    (liftMarshal, readObject, readSymbol, writeCache)
 import Data.Serialize.Get         (Get, getBytes, getTwoOf, label)
 import Data.String.Conv           (toS)
 import Text.Read                  (readMaybe)
@@ -118,19 +117,19 @@ getHash k v = do
 -- | Deserialises <http://docs.ruby-lang.org/en/2.1.0/marshal_rdoc.html#label-Instance+Variables Instance Variables>.
 getIVar :: Marshal RubyObject -> Marshal (RubyObject, REncoding)
 getIVar g = do
-  string <- g
-  length <- getFixnum
-  if | length /= 1 -> fail "getIvar: expected single character"
+  str <- g
+  len <- getFixnum
+  if | len /= 1 -> fail "getIvar: expected single character"
      | otherwise   -> do
        symbol <- g
        denote <- g
        case symbol of
          RSymbol "E" -> case denote of
-           RBool True  -> cacheAndReturn string UTF_8
-           RBool False -> cacheAndReturn string US_ASCII
+           RBool True  -> cacheAndReturn str UTF_8
+           RBool False -> cacheAndReturn str US_ASCII
            _           -> fail "getIVar: expected bool"
          RSymbol "encoding" -> case denote of
-           RString enc -> cacheAndReturn string (toEnc enc)
+           RString enc -> cacheAndReturn str (toEnc enc)
            _           -> fail "getIVar: expected string"
          _          -> fail "getIVar: invalid ivar"
   where
@@ -177,22 +176,3 @@ getSymlink = do
 -- | Lift label into Marshal monad.
 marshalLabel :: String -> Get a -> Marshal a
 marshalLabel x y = liftMarshal $ label x y
-
--- | Look up object in our object cache.
-readObject :: Int -> Marshal (Maybe RubyObject)
-readObject index = gets _objects >>= \objectCache ->
-  return $ objectCache V.!? index
-
--- | Look up a symbol in our symbol cache.
-readSymbol :: Int -> Marshal (Maybe RubyObject)
-readSymbol index = gets _symbols >>= \symbolCache ->
-  return $ symbolCache V.!? index
-
--- | Write an object to the appropriate cache.
-writeCache :: RubyObject -> Marshal ()
-writeCache object = do
-  cache <- get
-  case object of
-    RIVar   _ -> put $ cache { _objects = V.snoc (_objects cache) object }
-    RSymbol _ -> put $ cache { _symbols = V.snoc (_symbols cache) object }
-    _         -> return ()
