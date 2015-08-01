@@ -1,7 +1,7 @@
 name:
   ruby-marshal
 version:
-  0.0.1
+  0.1.0
 synopsis:
   Parse a subset of Ruby objects serialised with Marshal.dump.
 description:

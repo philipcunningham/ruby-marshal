@@ -1,3 +1,5 @@
+# 0.1.0
+
 - Separated modules by concern.
 - Hid underlying Get monad from consumers to allow us to change the parsing
   library without breaking consumers should a more performant one become
