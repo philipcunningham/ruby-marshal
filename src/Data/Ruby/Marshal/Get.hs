@@ -75,8 +75,7 @@ getRubyObject = getMarshalVersion >> go
 getArray :: Marshal a -> Marshal (V.Vector a)
 getArray g = marshalLabel "Fixnum" $ do
   n <- getFixnum
-  x <- V.replicateM n g
-  return x
+  V.replicateM n g
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Fixnum.html Fixnum>.
 getFixnum :: Marshal Int
@@ -104,17 +103,15 @@ getFixnum = liftAndLabel "Fixnum" $ do
 getFloat :: Marshal Float
 getFloat = marshalLabel "Float" $ do
   s <- getString
-  x <- case readMaybe . toS $ s of
+  case readMaybe . toS $ s of
     Just float -> return float
     Nothing    -> fail "expected float"
-  return x
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Hash.html Hash>.
 getHash :: Marshal a -> Marshal b -> Marshal (V.Vector (a, b))
 getHash k v = marshalLabel "Hash" $ do
   n <- getFixnum
-  x <- V.replicateM n (liftM2 (,) k v)
-  return x
+  V.replicateM n (liftM2 (,) k v)
 
 -- | Deserialises <http://docs.ruby-lang.org/en/2.1.0/marshal_rdoc.html#label-Instance+Variables Instance Variables>.
 getIVar :: Marshal RubyObject -> Marshal (RubyObject, REncoding)
@@ -131,7 +128,7 @@ getIVar g = marshalLabel "IVar" $ do
            RBool False -> return' (str, US_ASCII)
            _           -> fail "expected bool"
          RSymbol "encoding" -> case denote of
-           RString enc -> return' (str, (toEnc enc))
+           RString enc -> return' (str, toEnc enc)
            _           -> fail "expected string"
          _          -> fail "invalid ivar"
   where
@@ -152,8 +149,7 @@ getObjectLink = marshalLabel "ObjectLink" $ do
 getString :: Marshal BS.ByteString
 getString = marshalLabel "RawString" $ do
   n <- getFixnum
-  x <- liftMarshal $ getBytes n
-  return x
+  liftMarshal $ getBytes n
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Symbol.html Symbol>.
 getSymbol :: Marshal BS.ByteString
