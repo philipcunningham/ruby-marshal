@@ -41,6 +41,7 @@ library
     , Data.Ruby.Marshal.Encoding
     , Data.Ruby.Marshal.Get
     , Data.Ruby.Marshal.Int
+    , Data.Ruby.Marshal.Monad
     , Data.Ruby.Marshal.RubyObject
     , Data.Ruby.Marshal.Types
 
