@@ -104,7 +104,7 @@ getFloat = marshalLabel "Float" $ do
   s <- getString
   x <- case readMaybe . toS $ s of
     Just float -> return float
-    Nothing    -> fail "getFloat: expected float"
+    Nothing    -> fail "expected float"
   return x
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Hash.html Hash>.
@@ -119,7 +119,7 @@ getIVar :: Marshal RubyObject -> Marshal (RubyObject, REncoding)
 getIVar g = marshalLabel "IVar" $ do
   str <- g
   len <- getFixnum
-  if | len /= 1 -> fail "getIvar: expected single character"
+  if | len /= 1 -> fail "expected single character"
      | otherwise   -> do
        symbol <- g
        denote <- g
@@ -127,11 +127,11 @@ getIVar g = marshalLabel "IVar" $ do
          RSymbol "E" -> case denote of
            RBool True  -> return' (str, UTF_8)
            RBool False -> return' (str, US_ASCII)
-           _           -> fail "getIVar: expected bool"
+           _           -> fail "expected bool"
          RSymbol "encoding" -> case denote of
            RString enc -> return' (str, (toEnc enc))
-           _           -> fail "getIVar: expected string"
-         _          -> fail "getIVar: invalid ivar"
+           _           -> fail "expected string"
+         _          -> fail "invalid ivar"
   where
     return' result = do
       writeCache $ RIVar result
@@ -144,7 +144,7 @@ getObjectLink = marshalLabel "ObjectLink" $ do
   maybeObject <- readObject index
   case maybeObject of
     Just (RIVar x) -> return x
-    _              -> fail "getObjectLink"
+    _              -> fail "invalid object link"
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/String.html String>.
 getString :: Marshal BS.ByteString
