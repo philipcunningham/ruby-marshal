@@ -22,7 +22,7 @@ import Control.Applicative
 import Prelude
 
 import Control.Arrow              ((***))
-import Data.Ruby.Marshal.Encoding (REncoding(..))
+import Data.Ruby.Marshal.Encoding (RubyStringEncoding(..))
 
 import qualified Data.ByteString as BS
 import qualified Data.Map.Strict as DM
@@ -40,7 +40,7 @@ data RubyObject
     -- ^ represents an @Array@
   | RHash                  !(V.Vector (RubyObject, RubyObject))
     -- ^ represents an @Hash@
-  | RIVar                  !(RubyObject, REncoding)
+  | RIVar                  !(RubyObject, RubyStringEncoding)
     -- ^ represents an @IVar@
   | RString                !BS.ByteString
     -- ^ represents a @String@
@@ -107,7 +107,7 @@ instance Ruby Float where
     RFloat  x -> Just x
     _         -> Nothing
 
-instance Ruby (BS.ByteString, REncoding) where
+instance Ruby (BS.ByteString, RubyStringEncoding) where
   toRuby (x, y) = RIVar (RString x, y)
   fromRuby = \case
     RIVar (RString x, y) -> Just (x, y)

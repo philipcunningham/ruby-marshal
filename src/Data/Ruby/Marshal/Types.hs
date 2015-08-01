@@ -20,7 +20,7 @@ module Data.Ruby.Marshal.Types (
   -- * Internal cache
   , Cache
   -- * Ruby string encodings
-  , REncoding(..)
+  , RubyStringEncoding(..)
   -- * Ruby object
   , RubyObject(..)
   -- * Patterns

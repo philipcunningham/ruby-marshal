@@ -114,7 +114,7 @@ getHash k v = marshalLabel "Hash" $ do
   V.replicateM n (liftM2 (,) k v)
 
 -- | Deserialises <http://docs.ruby-lang.org/en/2.1.0/marshal_rdoc.html#label-Instance+Variables Instance Variables>.
-getIVar :: Marshal RubyObject -> Marshal (RubyObject, REncoding)
+getIVar :: Marshal RubyObject -> Marshal (RubyObject, RubyStringEncoding)
 getIVar g = marshalLabel "IVar" $ do
   str <- g
   len <- getFixnum
@@ -137,7 +137,7 @@ getIVar g = marshalLabel "IVar" $ do
       return result
 
 -- | Pulls an Instance Variable out of the object cache.
-getObjectLink :: Marshal (RubyObject, REncoding)
+getObjectLink :: Marshal (RubyObject, RubyStringEncoding)
 getObjectLink = marshalLabel "ObjectLink" $ do
   index <- getFixnum
   maybeObject <- readObject index

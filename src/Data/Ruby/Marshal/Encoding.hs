@@ -15,16 +15,16 @@
 --------------------------------------------------------------------
 
 module Data.Ruby.Marshal.Encoding (
-    -- * The @REncoding@ type
+    -- * The @RubyStringEncoding@ type
     fromEnc
   , toEnc
-  , REncoding(..)
+  , RubyStringEncoding(..)
 ) where
 
 import qualified Data.ByteString as BS
 
 -- | ADT representing all supported Ruby encodings.
-data REncoding = ASCII_8BIT
+data RubyStringEncoding = ASCII_8BIT
                | Big5
                | Big5_HKSCS
                | Big5_UAO
@@ -128,7 +128,7 @@ data REncoding = ASCII_8BIT
                deriving (Eq, Ord, Show)
 
 -- | Lifts encoding strings into encoding ADT.
-toEnc :: BS.ByteString -> REncoding
+toEnc :: BS.ByteString -> RubyStringEncoding
 toEnc "ASCII-8BIT"                 = ASCII_8BIT
 toEnc "UTF-8"                      = UTF_8
 toEnc "US-ASCII"                   = US_ASCII
@@ -232,7 +232,7 @@ toEnc "SJIS-SoftBank"              = SJIS_SoftBank
 toEnc _                            = UnsupportedEncoding
 
 -- | Lowers encoding ADT into an encoding string.
-fromEnc :: REncoding -> BS.ByteString
+fromEnc :: RubyStringEncoding -> BS.ByteString
 fromEnc ASCII_8BIT                 = "ASCII-8BIT"
 fromEnc UTF_8                      = "UTF-8"
 fromEnc US_ASCII                   = "US-ASCII"
