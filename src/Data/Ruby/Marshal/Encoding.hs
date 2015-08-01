@@ -23,6 +23,7 @@ module Data.Ruby.Marshal.Encoding (
 
 import qualified Data.ByteString as BS
 
+-- | ADT representing all supported Ruby encodings.
 data REncoding = ASCII_8BIT
                | Big5
                | Big5_HKSCS
@@ -126,6 +127,7 @@ data REncoding = ASCII_8BIT
                | InvalidEncoding
                deriving (Eq, Ord, Show)
 
+-- | Lifts encoding strings into encoding ADT.
 toEnc :: BS.ByteString -> REncoding
 toEnc "ASCII-8BIT"                 = ASCII_8BIT
 toEnc "UTF-8"                      = UTF_8
@@ -229,6 +231,7 @@ toEnc "UTF8-SoftBank"              = UTF8_SoftBank
 toEnc "SJIS-SoftBank"              = SJIS_SoftBank
 toEnc _                            = InvalidEncoding
 
+-- | Lowers encoding ADT into an encoding string.
 fromEnc :: REncoding -> BS.ByteString
 fromEnc ASCII_8BIT                 = "ASCII-8BIT"
 fromEnc UTF_8                      = "UTF-8"
