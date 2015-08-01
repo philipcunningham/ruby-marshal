@@ -43,8 +43,10 @@ import qualified Data.Vector     as V
 
 -- | Deserialises Marshal version.
 getMarshalVersion :: Marshal (Word8, Word8)
-getMarshalVersion = marshalLabel "Marshal Version" $
-  liftMarshal $ getTwoOf getWord8 getWord8
+getMarshalVersion = liftAndLabel "Marshal Version" $
+  getTwoOf getWord8 getWord8 >>= \case
+    (4, 8) -> return (4, 8)
+    _      -> fail "marshal version unsupported"
 
 -- | Deserialises a subset of Ruby objects.
 getRubyObject :: Marshal RubyObject
@@ -78,7 +80,7 @@ getArray g = marshalLabel "Fixnum" $ do
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Fixnum.html Fixnum>.
 getFixnum :: Marshal Int
-getFixnum = liftMarshal $ label "Fixnum" $ do
+getFixnum = liftAndLabel "Fixnum" $ do
   x <- getInt8
   if | x ==  0   -> fromIntegral <$> return x
      | x ==  1   -> fromIntegral <$> getWord8
@@ -172,6 +174,10 @@ getSymlink = marshalLabel "Symlink" $ do
 --------------------------------------------------------------------
 -- Utility functions.
 
--- | Lift label into Marshal monad.
+-- | Lift Get into Marshal monad and then label.
+liftAndLabel :: String -> Get a -> Marshal a
+liftAndLabel x y = liftMarshal $! label x y
+
+-- | Label underlying Get in Marshal monad.
 marshalLabel :: String -> Marshal a -> Marshal a
-marshalLabel x y = y >>= \y' -> liftMarshal $ label x (return y')
+marshalLabel x y = y >>= \y' -> liftMarshal $! label x (return y')
