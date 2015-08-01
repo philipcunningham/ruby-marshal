@@ -16,11 +16,15 @@ module Data.Ruby.Marshal (
   -- * Decoding
     decode
   , decodeEither
+  -- * Lifting into and lowering from RubyObject
+  , fromRuby
+  , toRuby
   -- * Re-exported modules
   , module Data.Ruby.Marshal.Types
 ) where
 
 import Data.Ruby.Marshal.Get
+import Data.Ruby.Marshal.RubyObject
 import Data.Ruby.Marshal.Types
 
 import Control.Monad.State     (evalStateT)

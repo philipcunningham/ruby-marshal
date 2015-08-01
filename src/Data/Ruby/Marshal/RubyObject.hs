@@ -53,7 +53,7 @@ data RubyObject
   deriving (Eq, Ord, Show)
 
 -- | Transform plain Haskell values to RubyObjects and back.
-class Ruby a where
+class Rubyable a where
   -- | Takes a plain Haskell value and lifts into RubyObject
   toRuby :: a -> RubyObject
   -- | Takes a RubyObject transforms it into a more general Haskell value.
@@ -61,53 +61,53 @@ class Ruby a where
 
 -- core instances
 
-instance Ruby RubyObject where
+instance Rubyable RubyObject where
   toRuby = id
   fromRuby = Just
 
-instance Ruby () where
+instance Rubyable () where
   toRuby _ = RNil
   fromRuby = \case
     RNil -> Just ()
     _    -> Nothing
 
-instance Ruby Bool where
+instance Rubyable Bool where
   toRuby = RBool
   fromRuby = \case
     RBool x -> Just x
     _       -> Nothing
 
-instance Ruby Int where
+instance Rubyable Int where
   toRuby = RFixnum
   fromRuby = \case
     RFixnum x -> Just x
     _         -> Nothing
 
-instance Ruby a => Ruby (V.Vector a) where
+instance Rubyable a => Rubyable (V.Vector a) where
   toRuby = RArray . V.map toRuby
   fromRuby = \case
     RArray x -> V.mapM fromRuby x
     _        -> Nothing
 
-instance (Ruby a, Ruby b) => Ruby (V.Vector (a, b)) where
+instance (Rubyable a, Rubyable b) => Rubyable (V.Vector (a, b)) where
   toRuby x = RHash $ V.map (toRuby *** toRuby) x
   fromRuby = \case
     RHash x -> V.mapM (\(k, v) -> (,) <$> fromRuby k <*> fromRuby v) x
     _       -> Nothing
 
-instance Ruby BS.ByteString where
+instance Rubyable BS.ByteString where
   toRuby = RSymbol
   fromRuby = \case
     RSymbol x -> Just x
     _         -> Nothing
 
-instance Ruby Float where
+instance Rubyable Float where
   toRuby = RFloat
   fromRuby = \case
     RFloat  x -> Just x
     _         -> Nothing
 
-instance Ruby (BS.ByteString, RubyStringEncoding) where
+instance Rubyable (BS.ByteString, RubyStringEncoding) where
   toRuby (x, y) = RIVar (RString x, y)
   fromRuby = \case
     RIVar (RString x, y) -> Just (x, y)
@@ -115,7 +115,7 @@ instance Ruby (BS.ByteString, RubyStringEncoding) where
 
 -- nil like
 
-instance Ruby a => Ruby (Maybe a) where
+instance Rubyable a => Rubyable (Maybe a) where
   toRuby = \case
     Just x  -> toRuby x
     Nothing -> RNil
@@ -126,16 +126,16 @@ instance Ruby a => Ruby (Maybe a) where
 
 -- array like
 
-instance Ruby a => Ruby [a] where
+instance Rubyable a => Rubyable [a] where
   toRuby = toRuby . V.fromList
   fromRuby x = V.toList <$> fromRuby x
 
 -- map like
 
-instance (Ruby a, Ruby b) => Ruby [(a, b)] where
+instance (Rubyable a, Rubyable b) => Rubyable [(a, b)] where
   toRuby = toRuby . V.fromList
   fromRuby x = V.toList <$> fromRuby x
 
-instance (Ruby a, Ruby b, Ord a) => Ruby (DM.Map a b) where
+instance (Rubyable a, Rubyable b, Ord a) => Rubyable (DM.Map a b) where
   toRuby = toRuby . DM.toList
   fromRuby x = DM.fromList <$> fromRuby x
