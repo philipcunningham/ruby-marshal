@@ -20,24 +20,13 @@
 module Data.Ruby.Marshal.Get (
     getMarshalVersion
   , getRubyObject
-  , getNil
-  , getBool
-  , getArray
-  , getFixnum
-  , getFloat
-  , getHash
-  , getIVar
-  , getObjectLink
-  , getString
-  , getSymbol
-  , getSymlink
 ) where
 
 import Control.Applicative
 import Data.Ruby.Marshal.Internal.Int
 import Data.Ruby.Marshal.Types
 
-import Control.Monad              (guard, liftM2)
+import Control.Monad              (liftM2)
 import Control.Monad.State        (get, gets, put)
 import Data.Ruby.Marshal.Encoding (toEnc)
 import Data.Serialize.Get         (Get, getBytes, getTwoOf, label)
@@ -79,16 +68,6 @@ getRubyObject = getMarshalVersion >> go
 
 --------------------------------------------------------------------
 -- Ancillary functions.
-
--- | Deserialises <http://ruby-doc.org/core-2.2.0/NilClass.html nil>.
-getNil :: Marshal ()
-getNil = marshalLabel "Nil" $ tag 48
-
--- | Deserialises <http://ruby-doc.org/core-2.2.0/TrueClass.html true> and
--- <http://ruby-doc.org/core-2.2.0/FalseClass.html false>.
-getBool :: Marshal Bool
-getBool = marshalLabel "Bool" $
-  True <$ tag 84 <|> False <$ tag 70
 
 -- | Deserialises <http://ruby-doc.org/core-2.2.0/Array.html Array>.
 getArray :: Marshal a -> Marshal (V.Vector a)
@@ -197,11 +176,6 @@ getSymlink = do
 -- | Lift label into Marshal monad.
 marshalLabel :: String -> Get a -> Marshal a
 marshalLabel x y = liftMarshal $ label x y
-
--- | Guard against invalid input.
-tag :: Word8 -> Get ()
-tag t = label "Tag" $
-  getWord8 >>= \b -> guard $ t == b
 
 -- | Look up object in our object cache.
 readObject :: Int -> Marshal (Maybe RubyObject)
