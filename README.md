@@ -1,5 +1,6 @@
 # ruby-marshal
 
+[![Build Status][Build Status Image]][Build Status]
 [Build Status Image]: https://travis-ci.org/filib/ruby-marshal.svg?branch=master
 [Build Status]: https://travis-ci.org/filib/ruby-marshal
 
