@@ -16,6 +16,9 @@
 
 module Data.Ruby.Marshal.Monad where
 
+import Control.Applicative
+import Prelude
+
 import Control.Monad.State          (get, gets, lift, put, MonadState, StateT)
 import Data.Ruby.Marshal.RubyObject (RubyObject(..))
 import Data.Serialize.Get           (Get)
