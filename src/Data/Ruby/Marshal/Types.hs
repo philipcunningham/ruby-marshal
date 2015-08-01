@@ -1,88 +1,68 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE PatternSynonyms #-}
 
-module Data.Ruby.Marshal.Types where
+--------------------------------------------------------------------
+-- |
+-- Module    : Data.Ruby.Marshal.Types
+-- Copyright : (c) Philip Cunningham, 2015
+-- License   : MIT
+--
+-- Maintainer:  802389+philipcunningham@users.noreply.github.com
+-- Stability :  experimental
+-- Portability: portable
+--
+-- Common types for Ruby Marshal deserialisation.
+--
+--------------------------------------------------------------------
 
-import Control.Applicative
-import Prelude
+module Data.Ruby.Marshal.Types (
+  -- * Marshal Monad
+    Marshal
+  -- * Internal cache
+  , Cache
+  -- * Ruby string encodings
+  , RubyStringEncoding(..)
+  -- * Ruby object
+  , RubyObject(..)
+  -- * Patterns
+  , pattern NilChar
+  , pattern FalseChar
+  , pattern TrueChar
+  , pattern ArrayChar
+  , pattern FixnumChar
+  , pattern FloatChar
+  , pattern HashChar
+  , pattern IVarChar
+  , pattern ObjectLinkChar
+  , pattern StringChar
+  , pattern SymbolChar
+  , pattern SymlinkChar
+) where
 
-import Control.Monad.State (lift, MonadState, StateT)
-import Data.Map            (Map)
-import Data.Serialize.Get  (Get)
-import Data.Vector         (Vector)
+import Data.Ruby.Marshal.Encoding
+import Data.Ruby.Marshal.Monad
+import Data.Ruby.Marshal.RubyObject
 
-import qualified Data.ByteString as BS
-
-data Cache = Cache {
-    _objects :: Vector RubyObject
-    -- ^ object cache.
-  , _symbols :: Vector RubyObject
-    -- ^ symbol cache.
-  } deriving Show
-
--- | Convey when unsupported object encountered.
-data Error
-  = Unsupported
-    -- ^ represents an unsupported Ruby object
-  deriving (Eq, Ord, Show)
-
--- | Marshal monad endows the underlying Get monad with State.
-newtype Marshal a = Marshal {
-  runMarshal :: StateT Cache Get a
-  } deriving (Functor, Applicative, Monad, MonadState Cache)
-
--- | Lift Get monad into Marshal monad.
-liftMarshal :: Get a -> Marshal a
-liftMarshal = Marshal . lift
-
--- | Representation of a Ruby object.
-data RubyObject
-  = RNil
-    -- ^ represents @nil@
-  | RBool                  !Bool
-    -- ^ represents @true@ or @false@
-  | RFixnum {-# UNPACK #-} !Int
-    -- ^ represents a @Fixnum@
-  | RArray                 !(Vector RubyObject)
-    -- ^ represents an @Array@
-  | RHash                  !(Map RubyObject RubyObject)
-    -- ^ represents an @Hash@
-  | RIVar                  !(RubyObject, BS.ByteString)
-    -- ^ represents an @IVar@
-  | RString                !BS.ByteString
-    -- ^ represents a @String@
-  | RFloat {-# UNPACK #-}  !Double
-    -- ^ represents a @Float@
-  | RSymbol                !BS.ByteString
-    -- ^ represents a @Symbol@
-  | RError                 !Error
-    -- ^ represents an invalid object
-  deriving (Eq, Ord, Show)
-
--- See docs.ruby-lang.org for more information
--- http://docs.ruby-lang.org/en/2.1.0/marshal_rdoc.html#label-Stream+Format
-
--- | NilClass
-pattern NilC = 48
--- | FalseClass
-pattern FalseC = 70
--- | TrueClass
-pattern TrueC = 84
--- | Array
-pattern ArrayC = 91
--- | Fixnum
-pattern FixnumC = 105
--- | Float
-pattern FloatC = 102
--- | Hash
-pattern HashC = 123
--- | IVar
-pattern IVarC = 73
--- | Object link
-pattern ObjectLinkC = 64
--- | String
-pattern StringC = 34
--- | Symbol
-pattern SymbolC = 58
--- | Symlink
-pattern SymlinkC = 59
+-- | Character that represents NilCharlass.
+pattern NilChar = 48
+-- | Character that represents FalseClass.
+pattern FalseChar = 70
+-- | Character that represents TrueClass.
+pattern TrueChar = 84
+-- | Character that represents Array.
+pattern ArrayChar = 91
+-- | Character that represents Fixnum.
+pattern FixnumChar = 105
+-- | Character that represents Float.
+pattern FloatChar = 102
+-- | Character that represents Hash.
+pattern HashChar = 123
+-- | Character that represents IVar.
+pattern IVarChar = 73
+-- | Character that represents Object link.
+pattern ObjectLinkChar = 64
+-- | Character that represents String.
+pattern StringChar = 34
+-- | Character that represents Symbol.
+pattern SymbolChar = 58
+-- | Character that represents Symlink.
+pattern SymlinkChar = 59

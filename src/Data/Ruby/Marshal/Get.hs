@@ -2,7 +2,6 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE RankNTypes #-}
 
 --------------------------------------------------------------------
 -- |
@@ -14,93 +13,73 @@
 -- Stability :  experimental
 -- Portability: portable
 --
--- Ruby Marshal deserialiser using @Data.Serialize@.
+-- Parsers for Ruby Marshal format.
 --
 --------------------------------------------------------------------
 
 module Data.Ruby.Marshal.Get (
+    -- * Ruby Marshal parsers
     getMarshalVersion
   , getRubyObject
-  , getNil
-  , getBool
-  , getArray
-  , getFixnum
-  , getFloat
-  , getHash
-  , getIVar
-  , getObjectLink
-  , getString
-  , getSymbol
-  , getSymlink
 ) where
 
 import Control.Applicative
-import Data.Ruby.Marshal.Internal.Int
+import Data.Ruby.Marshal.Int
 import Data.Ruby.Marshal.Types
+import Prelude
 
-import Control.Monad       (guard, liftM2, replicateM)
-import Control.Monad.State (get, gets, put)
-import Data.Serialize.Get  (Get, getBytes, getTwoOf, label)
-import Data.String.Conv    (toS)
-import Text.Read           (readMaybe)
+import Control.Monad              (liftM2)
+import Data.Ruby.Marshal.Encoding (toEnc)
+import Data.Ruby.Marshal.Monad    (liftMarshal, readObject, readSymbol, writeCache)
+import Data.Serialize.Get         (Get, getBytes, getTwoOf, label)
+import Data.String.Conv           (toS)
+import Text.Read                  (readMaybe)
 
 import qualified Data.ByteString as BS
-import qualified Data.Map.Strict as DM
 import qualified Data.Vector     as V
-
-import Prelude hiding (length)
 
 --------------------------------------------------------------------
 -- Top-level functions.
 
--- | Deserialises Marshal version.
+-- | Parses Marshal version.
 getMarshalVersion :: Marshal (Word8, Word8)
-getMarshalVersion = marshalLabel "Marshal Version" $
-  getTwoOf getWord8 getWord8
+getMarshalVersion = liftAndLabel "Marshal Version" $
+  getTwoOf getWord8 getWord8 >>= \version -> case version of
+    (4, 8) -> return version
+    _      -> fail "marshal version unsupported"
 
--- | Deserialises a subset of Ruby objects.
+-- | Parses a subset of Ruby objects.
 getRubyObject :: Marshal RubyObject
 getRubyObject = getMarshalVersion >> go
   where
     go :: Marshal RubyObject
     go = liftMarshal getWord8 >>= \case
-      NilC        -> return RNil
-      TrueC       -> return $ RBool True
-      FalseC      -> return $ RBool False
-      ArrayC      -> RArray  <$> getArray go
-      FixnumC     -> RFixnum <$> getFixnum
-      FloatC      -> RFloat  <$> getFloat
-      HashC       -> RHash   <$> getHash go go
-      IVarC       -> RIVar   <$> getIVar go
-      ObjectLinkC -> RIVar   <$> getObjectLink
-      StringC     -> RString <$> getString
-      SymbolC     -> RSymbol <$> getSymbol
-      SymlinkC    -> RSymbol <$> getSymlink
-      _           -> return $ RError Unsupported
+      NilChar        -> return RNil
+      TrueChar       -> return $ RBool True
+      FalseChar      -> return $ RBool False
+      FixnumChar     -> RFixnum <$> getFixnum
+      FloatChar      -> RFloat  <$> getFloat
+      StringChar     -> RString <$> getString
+      SymbolChar     -> RSymbol <$> getSymbol
+      ObjectLinkChar -> RIVar   <$> getObjectLink
+      SymlinkChar    -> RSymbol <$> getSymlink
+      ArrayChar      -> RArray  <$> getArray go
+      HashChar       -> RHash   <$> getHash go go
+      IVarChar       -> RIVar   <$> getIVar go
+      _              -> return Unsupported
 
 --------------------------------------------------------------------
 -- Ancillary functions.
 
--- | Deserialises <http://ruby-doc.org/core-2.2.0/NilClass.html nil>.
-getNil :: Marshal ()
-getNil = marshalLabel "Nil" $ tag 48
-
--- | Deserialises <http://ruby-doc.org/core-2.2.0/TrueClass.html true> and
--- <http://ruby-doc.org/core-2.2.0/FalseClass.html false>.
-getBool :: Marshal Bool
-getBool = marshalLabel "Bool" $
-  True <$ tag 84 <|> False <$ tag 70
-
--- | Deserialises <http://ruby-doc.org/core-2.2.0/Array.html Array>.
+-- | Parses <http://ruby-doc.org/core-2.2.0/Array.html Array>.
 getArray :: Marshal a -> Marshal (V.Vector a)
-getArray g = do
+getArray g = marshalLabel "Fixnum" $ do
   n <- getFixnum
-  x <- V.replicateM n g
-  marshalLabel "Array" $ return x
+  V.replicateM n g
 
--- | Deserialises <http://ruby-doc.org/core-2.2.0/Fixnum.html Fixnum>.
+-- | Parses <http://ruby-doc.org/core-2.2.0/Fixnum.html Fixnum>.
 getFixnum :: Marshal Int
-getFixnum = marshalLabel "Fixnum" $ do
+getFixnum = liftAndLabel "Fixnum" $ do
   x <- getInt8
   if | x ==  0   -> fromIntegral <$> return x
      | x ==  1   -> fromIntegral <$> getWord8
@@ -120,105 +99,81 @@ getFixnum = marshalLabel "Fixnum" $ do
       x <- fromIntegral <$> getInt8
       if x >= 0 && x <= 127 then return (x - 256) else return x
 
--- | Deserialises <http://ruby-doc.org/core-2.2.0/Float.html Float>.
-getFloat :: Marshal Double
-getFloat = do
+-- | Parses <http://ruby-doc.org/core-2.2.0/Float.html Float>.
+getFloat :: Marshal Float
+getFloat = marshalLabel "Float" $ do
   s <- getString
-  x <- case readMaybe . toS $ s of
+  case readMaybe . toS $ s of
     Just float -> return float
-    Nothing    -> fail "getFloat"
-  marshalLabel "Float" $ return x
+    Nothing    -> fail "expected float"
 
--- | Deserialises <http://ruby-doc.org/core-2.2.0/Hash.html Hash>.
-getHash :: forall k v. Ord k => Marshal k -> Marshal v -> Marshal (DM.Map k v)
-getHash k v = do
+-- | Parses <http://ruby-doc.org/core-2.2.0/Hash.html Hash>.
+getHash :: Marshal a -> Marshal b -> Marshal (V.Vector (a, b))
+getHash k v = marshalLabel "Hash" $ do
   n <- getFixnum
-  x <- DM.fromList `fmap` replicateM n (liftM2 (,) k v)
-  marshalLabel "Hash" $ return x
+  V.replicateM n (liftM2 (,) k v)
 
--- | Deserialises <http://docs.ruby-lang.org/en/2.1.0/marshal_rdoc.html#label-Instance+Variables Instance Variables>.
-getIVar :: Marshal RubyObject -> Marshal (RubyObject, BS.ByteString)
-getIVar g = do
-  string <- g
-  length <- getFixnum
-  if | length /= 1 -> fail "getIvar: expected single character"
+-- | Parses <http://docs.ruby-lang.org/en/2.1.0/marshal_rdoc.html#label-Instance+Variables Instance Variables>.
+getIVar :: Marshal RubyObject -> Marshal (RubyObject, RubyStringEncoding)
+getIVar g = marshalLabel "IVar" $ do
+  str <- g
+  len <- getFixnum
+  if | len /= 1 -> fail "expected single character"
      | otherwise   -> do
        symbol <- g
        denote <- g
        case symbol of
          RSymbol "E" -> case denote of
-           RBool True  -> cacheAndReturn string "UTF-8"
-           RBool False -> cacheAndReturn string "US-ASCII"
-           _           -> fail "getIVar: expected bool"
+           RBool True  -> return' (str, UTF_8)
+           RBool False -> return' (str, US_ASCII)
+           _           -> fail "expected bool"
          RSymbol "encoding" -> case denote of
-           RString enc -> cacheAndReturn string enc
-           _           -> fail "getIVar: expected string"
-         _          -> fail "getIVar: invalid ivar"
+           RString enc -> return' (str, toEnc enc)
+           _           -> fail "expected string"
+         _          -> fail "invalid ivar"
   where
-    cacheAndReturn string enc = do
-      let result = (string, enc)
+    return' result = do
       writeCache $ RIVar result
-      marshalLabel "IVar" $ return result
+      return result
 
 -- | Pulls an Instance Variable out of the object cache.
-getObjectLink :: Marshal (RubyObject, BS.ByteString)
-getObjectLink = do
+getObjectLink :: Marshal (RubyObject, RubyStringEncoding)
+getObjectLink = marshalLabel "ObjectLink" $ do
   index <- getFixnum
   maybeObject <- readObject index
   case maybeObject of
     Just (RIVar x) -> return x
-    _              -> fail "getObjectLink"
+    _              -> fail "invalid object link"
 
--- | Deserialises <http://ruby-doc.org/core-2.2.0/String.html String>.
+-- | Parses <http://ruby-doc.org/core-2.2.0/String.html String>.
 getString :: Marshal BS.ByteString
-getString = do
+getString = marshalLabel "RawString" $ do
   n <- getFixnum
-  x <- liftMarshal $ getBytes n
-  marshalLabel "RawString" $ return x
+  liftMarshal $ getBytes n
 
--- | Deserialises <http://ruby-doc.org/core-2.2.0/Symbol.html Symbol>.
+-- | Parses <http://ruby-doc.org/core-2.2.0/Symbol.html Symbol>.
 getSymbol :: Marshal BS.ByteString
-getSymbol = do
+getSymbol = marshalLabel "Symbol" $ do
   x <- getString
   writeCache $ RSymbol x
-  marshalLabel "Symbol" $ return x
+  return x
 
 -- | Pulls a Symbol out of the symbol cache.
 getSymlink :: Marshal BS.ByteString
-getSymlink = do
+getSymlink = marshalLabel "Symlink" $ do
   index <- getFixnum
   maybeObject <- readSymbol index
   case maybeObject of
     Just (RSymbol bs) -> return bs
-    _                 -> fail "getSymlink"
+    _                 -> fail "invalid symlink"
 
 --------------------------------------------------------------------
 -- Utility functions.
 
--- | Lift label into Marshal monad.
-marshalLabel :: String -> Get a -> Marshal a
-marshalLabel x y = liftMarshal $ label x y
+-- | Lift Get into Marshal monad and then label.
+liftAndLabel :: String -> Get a -> Marshal a
+liftAndLabel x y = liftMarshal $! label x y
 
--- | Guard against invalid input.
-tag :: Word8 -> Get ()
-tag t = label "Tag" $
-  getWord8 >>= \b -> guard $ t == b
-
--- | Look up object in our object cache.
-readObject :: Int -> Marshal (Maybe RubyObject)
-readObject index = gets _objects >>= \objectCache ->
-  return $ objectCache V.!? index
-
--- | Look up a symbol in our symbol cache.
-readSymbol :: Int -> Marshal (Maybe RubyObject)
-readSymbol index = gets _symbols >>= \symbolCache ->
-  return $ symbolCache V.!? index
-
--- | Write an object to the appropriate cache.
-writeCache :: RubyObject -> Marshal ()
-writeCache object = do
-  cache <- get
-  case object of
-    RIVar   _ -> put $ cache { _objects = V.snoc (_objects cache) object }
-    RSymbol _ -> put $ cache { _symbols = V.snoc (_symbols cache) object }
-    _         -> return ()
+-- | Label underlying Get in Marshal monad.
+marshalLabel :: String -> Marshal a -> Marshal a
+marshalLabel x y = y >>= \y' -> liftMarshal $! label x (return y')

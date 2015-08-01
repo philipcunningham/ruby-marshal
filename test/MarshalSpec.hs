@@ -6,7 +6,6 @@ import Data.Ruby.Marshal
 import Test.Hspec
 
 import qualified Data.ByteString as BS
-import qualified Data.Map.Strict as DM
 import qualified Data.Vector     as V
 
 loadBin :: FilePath -> IO (Maybe RubyObject)
@@ -74,7 +73,7 @@ spec = describe "load" $ do
   context "when we have ['hello', 'haskell', 'hello', 'haskell']" $
     it "should parse" $ do
       object <- loadBin "test/bin/stringArray.bin"
-      object `shouldBe` Just (RArray $ V.fromList [RIVar (RString "hello", "UTF-8"), RIVar (RString "haskell", "UTF-8"), RIVar (RString "hello", "UTF-8"), RIVar (RString "haskell", "UTF-8")])
+      object `shouldBe` Just (RArray $ V.fromList [RIVar (RString "hello", UTF_8), RIVar (RString "haskell", UTF_8), RIVar (RString "hello", UTF_8), RIVar (RString "haskell", UTF_8)])
 
   context "when we have [:hello, :haskell, :hello, :haskell]" $
     it "should parse" $ do
@@ -84,22 +83,22 @@ spec = describe "load" $ do
   context "when we have { 0 => false, 1 => true }" $
     it "should parse" $ do
       object <- loadBin "test/bin/fixnumHash.bin"
-      object `shouldBe` Just (RHash $ DM.fromList [(RFixnum 0, RBool False), (RFixnum 1, RBool True)])
+      object `shouldBe` Just (RHash $ V.fromList [(RFixnum 0, RBool False), (RFixnum 1, RBool True)])
 
   context "when we have 'hello haskell'" $
     it "should parse" $ do
       object <- loadBin "test/bin/UTF_8_String.bin"
-      object `shouldBe` Just (RIVar (RString "hello haskell", "UTF-8"))
+      object `shouldBe` Just (RIVar (RString "hello haskell", UTF_8))
 
   context "when we have 'hello haskell' in US-ASCII" $
     it "should parse" $ do
       object <- loadBin "test/bin/US_ASCII_String.bin"
-      object `shouldBe` Just (RIVar (RString "hello haskell", "US-ASCII"))
+      object `shouldBe` Just (RIVar (RString "hello haskell", US_ASCII))
 
   context "when we have 'hello haskell' in SHIFT_JIS" $
     it "should parse" $ do
       object <- loadBin "test/bin/Shift_JIS_String.bin"
-      object `shouldBe` Just (RIVar (RString "hello haskell", "Shift_JIS"))
+      object `shouldBe` Just (RIVar (RString "hello haskell", Shift_JIS))
 
   context "when we have 3.33333" $
     it "should parse" $ do

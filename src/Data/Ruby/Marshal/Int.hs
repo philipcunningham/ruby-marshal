@@ -1,6 +1,6 @@
 --------------------------------------------------------------------
 -- |
--- Module    : Data.Ruby.Marshal.Internal.Int
+-- Module    : Data.Ruby.Marshal.Int
 -- Copyright : (c) Philip Cunningham, 2015
 -- License   : MIT
 --
@@ -8,11 +8,11 @@
 -- Stability :  experimental
 -- Portability: portable
 --
--- Helper module for parsing Int.
+-- Parsers for signed and unsigned integrals.
 --
 --------------------------------------------------------------------
 
-module Data.Ruby.Marshal.Internal.Int (
+module Data.Ruby.Marshal.Int (
   -- * Signed integrals
     getInt8
   , getInt16le
