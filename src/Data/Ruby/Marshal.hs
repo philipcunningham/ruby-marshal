@@ -13,7 +13,7 @@
 --------------------------------------------------------------------
 
 module Data.Ruby.Marshal (
-  -- * Simple interface to deserialise Ruby Marshal binary
+  -- * Decoding
     decode
   , decodeEither
   -- * Re-exported modules
