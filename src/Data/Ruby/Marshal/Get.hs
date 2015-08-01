@@ -57,15 +57,15 @@ getRubyObject = getMarshalVersion >> go
       NilChar        -> return RNil
       TrueChar       -> return $ RBool True
       FalseChar      -> return $ RBool False
-      ArrayChar      -> RArray  <$> getArray go
       FixnumChar     -> RFixnum <$> getFixnum
       FloatChar      -> RFloat  <$> getFloat
-      HashChar       -> RHash   <$> getHash go go
-      IVarChar       -> RIVar   <$> getIVar go
-      ObjectLinkChar -> RIVar   <$> getObjectLink
       StringChar     -> RString <$> getString
       SymbolChar     -> RSymbol <$> getSymbol
+      ObjectLinkChar -> RIVar   <$> getObjectLink
       SymlinkChar    -> RSymbol <$> getSymlink
+      ArrayChar      -> RArray  <$> getArray go
+      HashChar       -> RHash   <$> getHash go go
+      IVarChar       -> RIVar   <$> getIVar go
       _              -> return Unsupported
 
 --------------------------------------------------------------------
