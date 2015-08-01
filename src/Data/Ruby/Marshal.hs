@@ -8,7 +8,7 @@
 -- Stability :  experimental
 -- Portability: portable
 --
--- Simple interface to deserialise Ruby Marshal binary.
+-- Simple interface to parse Ruby Marshal binary.
 --
 --------------------------------------------------------------------
 
@@ -33,7 +33,7 @@ import Data.Serialize             (runGet)
 
 import qualified Data.ByteString as BS
 
--- | Deserialises a subset of Ruby objects serialised with Marshal, Ruby's
+-- | Parses a subset of Ruby objects serialised with Marshal, Ruby's
 -- built-in binary serialisation format.
 decode :: BS.ByteString
        -- ^ Serialised Ruby object
@@ -41,7 +41,7 @@ decode :: BS.ByteString
        -- ^ De-serialisation result
 decode = hush . decodeEither
 
--- | Deserialises a subset of Ruby objects serialised with Marshal, Ruby's
+-- | Parses a subset of Ruby objects serialised with Marshal, Ruby's
 -- built-in binary serialisation format.
 decodeEither :: BS.ByteString
              -- ^ Serialised Ruby object

@@ -41,14 +41,14 @@ import qualified Data.Vector     as V
 --------------------------------------------------------------------
 -- Top-level functions.
 
--- | Deserialises Marshal version.
+-- | Parses Marshal version.
 getMarshalVersion :: Marshal (Word8, Word8)
 getMarshalVersion = liftAndLabel "Marshal Version" $
   getTwoOf getWord8 getWord8 >>= \version -> case version of
     (4, 8) -> return version
     _      -> fail "marshal version unsupported"
 
--- | Deserialises a subset of Ruby objects.
+-- | Parses a subset of Ruby objects.
 getRubyObject :: Marshal RubyObject
 getRubyObject = getMarshalVersion >> go
   where
@@ -71,13 +71,13 @@ getRubyObject = getMarshalVersion >> go
 --------------------------------------------------------------------
 -- Ancillary functions.
 
--- | Deserialises <http://ruby-doc.org/core-2.2.0/Array.html Array>.
+-- | Parses <http://ruby-doc.org/core-2.2.0/Array.html Array>.
 getArray :: Marshal a -> Marshal (V.Vector a)
 getArray g = marshalLabel "Fixnum" $ do
   n <- getFixnum
   V.replicateM n g
 
--- | Deserialises <http://ruby-doc.org/core-2.2.0/Fixnum.html Fixnum>.
+-- | Parses <http://ruby-doc.org/core-2.2.0/Fixnum.html Fixnum>.
 getFixnum :: Marshal Int
 getFixnum = liftAndLabel "Fixnum" $ do
   x <- getInt8
@@ -99,7 +99,7 @@ getFixnum = liftAndLabel "Fixnum" $ do
       x <- fromIntegral <$> getInt8
       if x >= 0 && x <= 127 then return (x - 256) else return x
 
--- | Deserialises <http://ruby-doc.org/core-2.2.0/Float.html Float>.
+-- | Parses <http://ruby-doc.org/core-2.2.0/Float.html Float>.
 getFloat :: Marshal Float
 getFloat = marshalLabel "Float" $ do
   s <- getString
@@ -107,13 +107,13 @@ getFloat = marshalLabel "Float" $ do
     Just float -> return float
     Nothing    -> fail "expected float"
 
--- | Deserialises <http://ruby-doc.org/core-2.2.0/Hash.html Hash>.
+-- | Parses <http://ruby-doc.org/core-2.2.0/Hash.html Hash>.
 getHash :: Marshal a -> Marshal b -> Marshal (V.Vector (a, b))
 getHash k v = marshalLabel "Hash" $ do
   n <- getFixnum
   V.replicateM n (liftM2 (,) k v)
 
--- | Deserialises <http://docs.ruby-lang.org/en/2.1.0/marshal_rdoc.html#label-Instance+Variables Instance Variables>.
+-- | Parses <http://docs.ruby-lang.org/en/2.1.0/marshal_rdoc.html#label-Instance+Variables Instance Variables>.
 getIVar :: Marshal RubyObject -> Marshal (RubyObject, RubyStringEncoding)
 getIVar g = marshalLabel "IVar" $ do
   str <- g
@@ -145,13 +145,13 @@ getObjectLink = marshalLabel "ObjectLink" $ do
     Just (RIVar x) -> return x
     _              -> fail "invalid object link"
 
--- | Deserialises <http://ruby-doc.org/core-2.2.0/String.html String>.
+-- | Parses <http://ruby-doc.org/core-2.2.0/String.html String>.
 getString :: Marshal BS.ByteString
 getString = marshalLabel "RawString" $ do
   n <- getFixnum
   liftMarshal $ getBytes n
 
--- | Deserialises <http://ruby-doc.org/core-2.2.0/Symbol.html Symbol>.
+-- | Parses <http://ruby-doc.org/core-2.2.0/Symbol.html Symbol>.
 getSymbol :: Marshal BS.ByteString
 getSymbol = marshalLabel "Symbol" $ do
   x <- getString
