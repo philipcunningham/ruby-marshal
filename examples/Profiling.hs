@@ -2,13 +2,12 @@
 
 module Main where
 
-import Data.Monoid       (mconcat)
-import Data.Ruby.Marshal (decode, RubyObject(..))
-import Data.Vector       (Vector)
-import System.Directory  (getCurrentDirectory)
-
-import qualified Data.ByteString as BS
-import qualified Data.Foldable   as F
+import qualified Data.ByteString   as BS
+import qualified Data.Foldable     as F
+import           Data.Monoid       (mconcat)
+import           Data.Ruby.Marshal (RubyObject (..), decode)
+import           Data.Vector       (Vector)
+import           System.Directory  (getCurrentDirectory)
 
 sumFixnum :: Vector RubyObject -> Int
 sumFixnum xs = F.foldl' (+) 0 $ fmap f xs
@@ -21,5 +20,5 @@ main = do
   dir <- getCurrentDirectory
   rbs <- BS.readFile (mconcat [dir, "/test/bin/bigArray.bin"])
   print $ decode rbs >>= \case
-    RArray xs -> Just $ sumFixnum xs
-    _         -> Nothing
+            RArray xs -> Just $ sumFixnum xs
+            _         -> Nothing

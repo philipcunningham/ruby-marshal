@@ -1,7 +1,7 @@
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE PatternSynonyms   #-}
 
 --------------------------------------------------------------------
 -- |
@@ -24,17 +24,18 @@ module Data.Ruby.Marshal.Get (
 ) where
 
 import           Control.Applicative
-import           Control.Monad (liftM2)
-import qualified Data.ByteString as BS
+import           Control.Monad              (liftM2)
+import qualified Data.ByteString            as BS
 import           Data.Ruby.Marshal.Encoding (toEnc)
 import           Data.Ruby.Marshal.Int
-import           Data.Ruby.Marshal.Monad (liftMarshal, readObject, readSymbol, writeCache)
+import           Data.Ruby.Marshal.Monad    (liftMarshal, readObject,
+                                             readSymbol, writeCache)
 import           Data.Ruby.Marshal.Types
-import           Data.Serialize.Get (Get, getBytes, getTwoOf, label)
-import           Data.String.Conv (toS)
-import qualified Data.Vector as V
+import           Data.Serialize.Get         (Get, getBytes, getTwoOf, label)
+import           Data.String.Conv           (toS)
+import qualified Data.Vector                as V
 import           Prelude
-import           Text.Read (readMaybe)
+import           Text.Read                  (readMaybe)
 
 --------------------------------------------------------------------
 -- Top-level functions.

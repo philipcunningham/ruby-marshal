@@ -28,11 +28,12 @@ module Data.Ruby.Marshal.Int (
 ) where
 
 import           Control.Applicative
-import           Data.Bits ((.|.), shiftL)
-import qualified Data.ByteString as BS
-import           Data.Int (Int8, Int16, Int32)
-import           Data.Serialize.Get (Get, getBytes, getWord8, getWord16le, getWord32le)
-import           Data.Word (Word8, Word32)
+import           Data.Bits           (shiftL, (.|.))
+import qualified Data.ByteString     as BS
+import           Data.Int            (Int16, Int32, Int8)
+import           Data.Serialize.Get  (Get, getBytes, getWord16le, getWord32le,
+                                      getWord8)
+import           Data.Word           (Word32, Word8)
 import           Prelude
 
 -- | Read an Int8.

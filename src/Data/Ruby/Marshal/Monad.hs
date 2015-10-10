@@ -17,11 +17,12 @@
 module Data.Ruby.Marshal.Monad where
 
 import           Control.Applicative
-import           Control.Monad.State.Strict (get, gets, lift, put, MonadState, StateT)
-import           Data.Ruby.Marshal.RubyObject (RubyObject(..))
-import           Data.Serialize.Get (Get)
-import           Data.Vector (Vector)
-import qualified Data.Vector as V
+import           Control.Monad.State.Strict   (MonadState, StateT, get, gets,
+                                               lift, put)
+import           Data.Ruby.Marshal.RubyObject (RubyObject (..))
+import           Data.Serialize.Get           (Get)
+import           Data.Vector                  (Vector)
+import qualified Data.Vector                  as V
 import           Prelude
 
 -- | Marshal monad endows the underlying Get monad with State.
