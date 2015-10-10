@@ -27,15 +27,13 @@ module Data.Ruby.Marshal.Int (
   , Word8
 ) where
 
-import Control.Applicative
-import Prelude
-
-import Data.Bits          ((.|.), shiftL)
-import Data.Int           (Int8, Int16, Int32)
-import Data.Serialize.Get (Get, getBytes, getWord8, getWord16le, getWord32le)
-import Data.Word          (Word8, Word32)
-
+import           Control.Applicative
+import           Data.Bits ((.|.), shiftL)
 import qualified Data.ByteString as BS
+import           Data.Int (Int8, Int16, Int32)
+import           Data.Serialize.Get (Get, getBytes, getWord8, getWord16le, getWord32le)
+import           Data.Word (Word8, Word32)
+import           Prelude
 
 -- | Read an Int8.
 getInt8 :: Get Int8
@@ -51,7 +49,7 @@ getWord24le :: Get Word32
 getWord24le = do
   s <- getBytes 3
   return $! (fromIntegral (s `BS.index` 2) `shiftL` 16) .|.
-            (fromIntegral (s `BS.index` 1) `shiftL`  8) .|.
+            (fromIntegral (s `BS.index` 1) `shiftL` 8) .|.
              fromIntegral (s `BS.index` 0)
 
 -- | Read an Int24. Since Int24 unavailable in Data.Int we use Int32.

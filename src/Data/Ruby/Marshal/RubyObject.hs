@@ -18,15 +18,13 @@
 
 module Data.Ruby.Marshal.RubyObject where
 
-import Control.Applicative
-import Prelude
-
-import Control.Arrow              ((***))
-import Data.Ruby.Marshal.Encoding (RubyStringEncoding(..))
-
+import           Control.Applicative
+import           Control.Arrow ((***))
 import qualified Data.ByteString as BS
 import qualified Data.Map.Strict as DM
-import qualified Data.Vector     as V
+import           Data.Ruby.Marshal.Encoding (RubyStringEncoding(..))
+import qualified Data.Vector as V
+import           Prelude
 
 -- | Representation of a Ruby object.
 data RubyObject
@@ -104,8 +102,8 @@ instance Rubyable BS.ByteString where
 instance Rubyable Float where
   toRuby = RFloat
   fromRuby = \case
-    RFloat  x -> Just x
-    _         -> Nothing
+    RFloat x -> Just x
+    _        -> Nothing
 
 instance Rubyable (BS.ByteString, RubyStringEncoding) where
   toRuby (x, y) = RIVar (RString x, y)
@@ -119,7 +117,6 @@ instance Rubyable a => Rubyable (Maybe a) where
   toRuby = \case
     Just x  -> toRuby x
     Nothing -> RNil
-
   fromRuby = \case
     RNil -> Just Nothing
     x    -> fromRuby x
