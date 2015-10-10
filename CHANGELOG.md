@@ -1,6 +1,7 @@
 # 0.1.1
 
 - Added some minor style changes.
+- Relaxed mtl lower bound.
 
 # 0.1.0
 
