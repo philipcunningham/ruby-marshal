@@ -23,20 +23,18 @@ module Data.Ruby.Marshal.Get (
   , getRubyObject
 ) where
 
-import Control.Applicative
-import Data.Ruby.Marshal.Int
-import Data.Ruby.Marshal.Types
-import Prelude
-
-import Control.Monad              (liftM2)
-import Data.Ruby.Marshal.Encoding (toEnc)
-import Data.Ruby.Marshal.Monad    (liftMarshal, readObject, readSymbol, writeCache)
-import Data.Serialize.Get         (Get, getBytes, getTwoOf, label)
-import Data.String.Conv           (toS)
-import Text.Read                  (readMaybe)
-
+import           Control.Applicative
+import           Control.Monad (liftM2)
 import qualified Data.ByteString as BS
-import qualified Data.Vector     as V
+import           Data.Ruby.Marshal.Encoding (toEnc)
+import           Data.Ruby.Marshal.Int
+import           Data.Ruby.Marshal.Monad (liftMarshal, readObject, readSymbol, writeCache)
+import           Data.Ruby.Marshal.Types
+import           Data.Serialize.Get (Get, getBytes, getTwoOf, label)
+import           Data.String.Conv (toS)
+import qualified Data.Vector as V
+import           Prelude
+import           Text.Read (readMaybe)
 
 --------------------------------------------------------------------
 -- Top-level functions.
@@ -54,19 +52,19 @@ getRubyObject = getMarshalVersion >> go
   where
     go :: Marshal RubyObject
     go = liftMarshal getWord8 >>= \case
-      NilChar        -> return RNil
-      TrueChar       -> return $ RBool True
-      FalseChar      -> return $ RBool False
-      FixnumChar     -> RFixnum <$> getFixnum
-      FloatChar      -> RFloat  <$> getFloat
-      StringChar     -> RString <$> getString
-      SymbolChar     -> RSymbol <$> getSymbol
-      ObjectLinkChar -> RIVar   <$> getObjectLink
-      SymlinkChar    -> RSymbol <$> getSymlink
-      ArrayChar      -> RArray  <$> getArray go
-      HashChar       -> RHash   <$> getHash go go
-      IVarChar       -> RIVar   <$> getIVar go
-      _              -> return Unsupported
+           NilChar        -> return RNil
+           TrueChar       -> return $ RBool True
+           FalseChar      -> return $ RBool False
+           FixnumChar     -> RFixnum <$> getFixnum
+           FloatChar      -> RFloat <$> getFloat
+           StringChar     -> RString <$> getString
+           SymbolChar     -> RSymbol <$> getSymbol
+           ObjectLinkChar -> RIVar <$> getObjectLink
+           SymlinkChar    -> RSymbol <$> getSymlink
+           ArrayChar      -> RArray <$> getArray go
+           HashChar       -> RHash <$> getHash go go
+           IVarChar       -> RIVar <$> getIVar go
+           _              -> return Unsupported
 
 --------------------------------------------------------------------
 -- Ancillary functions.
@@ -81,23 +79,25 @@ getArray g = marshalLabel "Fixnum" $ do
 getFixnum :: Marshal Int
 getFixnum = liftAndLabel "Fixnum" $ do
   x <- getInt8
-  if | x ==  0   -> fromIntegral <$> return x
-     | x ==  1   -> fromIntegral <$> getWord8
-     | x == -1   -> fromIntegral <$> getNegInt16
-     | x ==  2   -> fromIntegral <$> getWord16le
-     | x == -2   -> fromIntegral <$> getInt16le
-     | x ==  3   -> fromIntegral <$> getWord24le
-     | x == -3   -> fromIntegral <$> getInt24le
-     | x ==  4   -> fromIntegral <$> getWord32le
-     | x == -4   -> fromIntegral <$> getInt32le
-     | x >=  6   -> fromIntegral <$> return (x - 5)
-     | x <= -6   -> fromIntegral <$> return (x + 5)
+  if | x == 0 -> fromIntegral <$> return x
+     | x == 1 -> fromIntegral <$> getWord8
+     | x == -1 -> fromIntegral <$> getNegInt16
+     | x == 2 -> fromIntegral <$> getWord16le
+     | x == -2 -> fromIntegral <$> getInt16le
+     | x == 3 -> fromIntegral <$> getWord24le
+     | x == -3 -> fromIntegral <$> getInt24le
+     | x == 4 -> fromIntegral <$> getWord32le
+     | x == -4 -> fromIntegral <$> getInt32le
+     | x >= 6 -> fromIntegral <$> return (x - 5)
+     | x <= -6 -> fromIntegral <$> return (x + 5)
      | otherwise -> empty
   where
     getNegInt16 :: Get Int16
-    getNegInt16 =  do
+    getNegInt16 = do
       x <- fromIntegral <$> getInt8
-      if x >= 0 && x <= 127 then return (x - 256) else return x
+      if x >= 0 && x <= 127
+        then return (x - 256)
+        else return x
 
 -- | Parses <http://ruby-doc.org/core-2.2.0/Float.html Float>.
 getFloat :: Marshal Float
@@ -119,18 +119,20 @@ getIVar g = marshalLabel "IVar" $ do
   str <- g
   len <- getFixnum
   if | len /= 1 -> fail "expected single character"
-     | otherwise   -> do
-       symbol <- g
-       denote <- g
-       case symbol of
-         RSymbol "E" -> case denote of
-           RBool True  -> return' (str, UTF_8)
-           RBool False -> return' (str, US_ASCII)
-           _           -> fail "expected bool"
-         RSymbol "encoding" -> case denote of
-           RString enc -> return' (str, toEnc enc)
-           _           -> fail "expected string"
-         _          -> fail "invalid ivar"
+     | otherwise -> do
+        symbol <- g
+        denote <- g
+        case symbol of
+          RSymbol "E" ->
+            case denote of
+              RBool True  -> return' (str, UTF_8)
+              RBool False -> return' (str, US_ASCII)
+              _           -> fail "expected bool"
+          RSymbol "encoding" ->
+            case denote of
+              RString enc -> return' (str, toEnc enc)
+              _           -> fail "expected string"
+          _ -> fail "invalid ivar"
   where
     return' result = do
       writeCache $ RIVar result

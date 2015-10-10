@@ -23,15 +23,13 @@ module Data.Ruby.Marshal (
   , module Data.Ruby.Marshal.Types
 ) where
 
-import Data.Ruby.Marshal.Get
-import Data.Ruby.Marshal.RubyObject
-import Data.Ruby.Marshal.Types
-
-import Control.Monad.State.Strict (evalStateT)
-import Data.Ruby.Marshal.Monad    (emptyCache, runMarshal)
-import Data.Serialize             (runGet)
-
+import           Control.Monad.State.Strict (evalStateT)
 import qualified Data.ByteString as BS
+import           Data.Ruby.Marshal.Get
+import           Data.Ruby.Marshal.Monad (emptyCache, runMarshal)
+import           Data.Ruby.Marshal.RubyObject
+import           Data.Ruby.Marshal.Types
+import           Data.Serialize (runGet)
 
 -- | Parses a subset of Ruby objects serialised with Marshal, Ruby's
 -- built-in binary serialisation format.

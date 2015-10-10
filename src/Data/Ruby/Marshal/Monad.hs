@@ -16,15 +16,13 @@
 
 module Data.Ruby.Marshal.Monad where
 
-import Control.Applicative
-import Prelude
-
-import Control.Monad.State.Strict   (get, gets, lift, put, MonadState, StateT)
-import Data.Ruby.Marshal.RubyObject (RubyObject(..))
-import Data.Serialize.Get           (Get)
-import Data.Vector                  (Vector)
-
+import           Control.Applicative
+import           Control.Monad.State.Strict (get, gets, lift, put, MonadState, StateT)
+import           Data.Ruby.Marshal.RubyObject (RubyObject(..))
+import           Data.Serialize.Get (Get)
+import           Data.Vector (Vector)
 import qualified Data.Vector as V
+import           Prelude
 
 -- | Marshal monad endows the underlying Get monad with State.
 newtype Marshal a = Marshal {
@@ -64,6 +62,6 @@ writeCache :: RubyObject -> Marshal ()
 writeCache object = do
   cache <- get
   case object of
-    RIVar   _ -> put $ cache { objects = V.snoc (objects cache) object }
+    RIVar _   -> put $ cache { objects = V.snoc (objects cache) object }
     RSymbol _ -> put $ cache { symbols = V.snoc (symbols cache) object }
     _         -> return ()
