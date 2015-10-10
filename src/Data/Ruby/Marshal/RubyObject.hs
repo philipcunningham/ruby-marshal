@@ -1,6 +1,6 @@
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE IncoherentInstances #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase          #-}
 
 --------------------------------------------------------------------
 -- |
@@ -19,11 +19,11 @@
 module Data.Ruby.Marshal.RubyObject where
 
 import           Control.Applicative
-import           Control.Arrow ((***))
-import qualified Data.ByteString as BS
-import qualified Data.Map.Strict as DM
-import           Data.Ruby.Marshal.Encoding (RubyStringEncoding(..))
-import qualified Data.Vector as V
+import           Control.Arrow              ((***))
+import qualified Data.ByteString            as BS
+import qualified Data.Map.Strict            as DM
+import           Data.Ruby.Marshal.Encoding (RubyStringEncoding (..))
+import qualified Data.Vector                as V
 import           Prelude
 
 -- | Representation of a Ruby object.
