@@ -1,3 +1,7 @@
+# 0.1.1
+
+- Added some minor style changes.
+
 # 0.1.0
 
 - Separated modules by concern.
