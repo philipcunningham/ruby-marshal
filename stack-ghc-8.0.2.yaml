@@ -1,5 +1,0 @@
-resolver: nightly-2017-03-30
-extra-deps:
-- vector-0.10.12.3
-- cereal-0.4.1.1
-- primitive-0.6.1.0
