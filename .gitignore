@@ -16,6 +16,9 @@ cabal.sandbox.config
 *.aux
 *.hp
 *.ps
+.stack-work/
+*~
+stack.yaml
 
 # ruby
 .ruby-version
