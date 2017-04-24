@@ -1,7 +1,3 @@
-# 0.1.2
-
-- Relaxed cereal and vector upper bounds.
-
 # 0.1.1
 
 - Added some minor style changes.
