@@ -42,6 +42,11 @@ before_install:
   - export PATH=$HOME/.local/bin:$PATH
   - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
 
+# Avoid timeouts.
+install:
+  - travis_wait stack --no-terminal --skip-ghc-check setup
+  - travis_wait stack --no-terminal --skip-ghc-check test --only-snapshot
+
 # Run the tests.
 script:
   - stack --no-terminal --skip-ghc-check test --fast
