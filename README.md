@@ -1,6 +1,6 @@
 # ruby-marshal
 
-[![Build Status](https://travis-ci.org/filib/ruby-marshal.svg?branch=master)](https://travis-ci.org/filib/ruby-marshal)
+[![Build Status](https://travis-ci.org/mcfilib/ruby-marshal.svg?branch=master)](https://travis-ci.org/mcfilib/ruby-marshal)
 
 Haskell library to parse a subset of Ruby objects serialised with Marshal.dump.
 
