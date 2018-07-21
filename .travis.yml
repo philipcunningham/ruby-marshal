@@ -9,7 +9,25 @@ cache:
 # Build matrix.
 matrix:
   include:
-    - env: GHCVER=8.0.2 STACK_YAML=stack.yaml
+    - env: GHCVER=8.4.2 STACK_YAML=stack-8.4.yaml
+      compiler: GHC-8.4.2
+      addons:
+        apt:
+          sources:
+            - hvr-ghc
+          packages:
+            - ghc-8.4.2
+
+    - env: GHCVER=8.2.2 STACK_YAML=stack.yaml
+      compiler: GHC-8.2.2
+      addons:
+        apt:
+          sources:
+            - hvr-ghc
+          packages:
+            - ghc-8.2.2
+
+    - env: GHCVER=8.0.2 STACK_YAML=stack-8.0.yaml
       compiler: GHC-8.0.2
       addons:
         apt:
