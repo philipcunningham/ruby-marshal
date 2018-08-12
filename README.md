@@ -59,9 +59,10 @@ main = do
 
 ### Contributors
 
-- [@filib](https://github.com/filib)
+- [@mcfilib](https://github.com/mcfilib)
 - [@adinapoli](https://github.com/adinapoli)
 - [@kanishka-azimi](https://github.com/kanishka-azimi)
+- [@zyla](https://github.com/zyla)
 
 ## Similar Libraries
 
