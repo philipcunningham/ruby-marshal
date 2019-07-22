@@ -1,7 +1,0 @@
-resolver: lts-2.22
-packages:
-- '.'
-extra-deps:
-  - string-conv-0.1.2
-flags: {}
-extra-package-dbs: []
