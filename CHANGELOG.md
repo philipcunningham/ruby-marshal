@@ -1,3 +1,11 @@
+# 0.1.3
+
+- Relaxed version bounds.
+
+# 0.1.2
+
+- Relaxed version bounds.
+
 # 0.1.1
 
 - Added some minor style changes.

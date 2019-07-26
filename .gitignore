@@ -18,6 +18,7 @@ cabal.sandbox.config
 *.ps
 .stack-work/
 *~
+stack.yaml.lock
 
 # ruby
 .ruby-version
