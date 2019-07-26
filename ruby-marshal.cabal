@@ -21,10 +21,6 @@ flag developer
   default: False
 
 library
-  if flag(developer)
-    ghc-options:
-      -fprof-auto
-      -rtsopts
   hs-source-dirs:
     src
   build-depends:
