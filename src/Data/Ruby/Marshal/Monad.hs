@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 --------------------------------------------------------------------
@@ -17,6 +18,9 @@
 module Data.Ruby.Marshal.Monad where
 
 import           Control.Applicative
+import qualified Control.Monad.Fail           as Fail
+import qualified Control.Monad                as Monad
+import           Control.Monad                (join)
 import           Control.Monad.State.Strict   (MonadState, StateT, get, gets,
                                                lift, put)
 import           Data.Ruby.Marshal.RubyObject (RubyObject (..))
@@ -28,7 +32,17 @@ import           Prelude
 -- | Marshal monad endows the underlying Get monad with State.
 newtype Marshal a = Marshal {
   runMarshal :: StateT Cache Get a
-} deriving (Functor, Applicative, Monad, MonadState Cache)
+} deriving (Functor, Applicative, MonadState Cache)
+
+instance Monad Marshal where
+  (Marshal ma) >>= f = Marshal . join $ runMarshal . f <$> ma
+
+#if !MIN_VERSION_base(4,13,0)
+  fail = Fail.fail
+#endif
+
+instance Fail.MonadFail Marshal where
+  fail = Marshal . Monad.fail
 
 -- | Lift Get monad into Marshal monad.
 liftMarshal :: Get a -> Marshal a
