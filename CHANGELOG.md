@@ -1,3 +1,7 @@
+# 0.2.0
+
+- Added `MonadFail` instance for `Marshal` (#62)
+
 # 0.1.3
 
 - Relaxed version bounds.

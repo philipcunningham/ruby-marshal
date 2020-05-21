@@ -64,6 +64,7 @@ main = do
 - [@kanishka-azimi](https://github.com/kanishka-azimi)
 - [@zyla](https://github.com/zyla)
 - [@etherz10](https://github.com/etherz10)
+- [@JackKelly-Bellroy](https://github.com/JackKelly-Bellroy)
 
 ## Similar Libraries
 
