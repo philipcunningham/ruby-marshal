@@ -10,7 +10,7 @@ maintainer: 802389+philipcunningham@users.noreply.github.com
 category: Data
 build-type: Simple
 tested-with: GHC == 7.8.4, GHC == 7.10.3, GHC == 8.6.5, GHC == 8.8.3
-cabal-version: >= 1.10
+cabal-version: 2.0
 extra-source-files: CHANGELOG.md
 
 Source-repository head
@@ -31,7 +31,7 @@ library
     , fail        >= 4.9.0.0 && < 4.10
     , string-conv >= 0.1     && <= 0.2
     , mtl         >= 2.1.0   && <= 2.3.0
-    , vector      >= 0.10.0  && <= 0.12.1.2
+    , vector      >= 0.10.0  && <  0.13
   default-language:
     Haskell2010
   exposed-modules:
@@ -59,6 +59,8 @@ test-suite spec
     , mtl
     , string-conv
     , vector
+  build-tool-depends:
+    hspec-discover:hspec-discover >= 2.9 && < 2.10
   default-language:
     Haskell2010
   other-modules:
