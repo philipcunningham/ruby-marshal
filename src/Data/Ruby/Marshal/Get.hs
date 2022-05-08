@@ -24,7 +24,8 @@ module Data.Ruby.Marshal.Get (
 ) where
 
 import           Control.Applicative
-import           Control.Monad              (liftM2)
+import           Control.Monad              (liftM2, when)
+import           Data.Monoid                ((<>))
 import qualified Data.ByteString            as BS
 import           Data.Ruby.Marshal.Encoding (toEnc)
 import           Data.Ruby.Marshal.Int
@@ -60,10 +61,16 @@ getRubyObject = getMarshalVersion >> go
            FloatChar      -> RFloat <$> getFloat
            StringChar     -> RString <$> getString
            SymbolChar     -> RSymbol <$> getSymbol
-           ObjectLinkChar -> RIVar <$> getObjectLink
+           ObjectLinkChar -> getObjectLink
            SymlinkChar    -> RSymbol <$> getSymlink
-           ArrayChar      -> RArray <$> getArray go
-           HashChar       -> RHash <$> getHash go go
+           ArrayChar      -> do
+             result <- RArray <$> getArray go
+             writeCache result
+             pure result
+           HashChar       -> do
+             result <- RHash <$> getHash go go
+             writeCache result
+             pure result
            IVarChar       -> RIVar <$> getIVar go
            _              -> return Unsupported
 
@@ -140,13 +147,14 @@ getIVar g = marshalLabel "IVar" $ do
       return result
 
 -- | Pulls an Instance Variable out of the object cache.
-getObjectLink :: Marshal (RubyObject, RubyStringEncoding)
+getObjectLink :: Marshal RubyObject
 getObjectLink = marshalLabel "ObjectLink" $ do
   index <- getFixnum
-  maybeObject <- readObject index
+  when (index == 0) $ fail $ "invalid object link (index=0)"
+  maybeObject <- readObject (index - 1)
   case maybeObject of
-    Just (RIVar x) -> return x
-    _              -> fail "invalid object link"
+    Just x -> return x
+    x      -> fail $ "invalid object link (index=" <> show index <> ", target=" <> show x <> ")"
 
 -- | Parses <http://ruby-doc.org/core-2.2.0/String.html String>.
 getString :: Marshal BS.ByteString

@@ -13,6 +13,11 @@ loadBin path = do
     bs <- BS.readFile path
     return $ decode bs
 
+loadBinEither :: FilePath -> IO (Either String RubyObject)
+loadBinEither path = do
+    bs <- BS.readFile path
+    return $ decodeEither bs
+
 spec :: Spec
 spec = describe "load" $ do
   context "when we have nil" $
@@ -109,3 +114,10 @@ spec = describe "load" $ do
     it "should parse" $ do
       object <- loadBin "test/bin/symbol.bin"
       object `shouldBe` Just (RSymbol "hello_haskell")
+
+  context "when we have hashes, arrays and object links" $
+    it "should parse" $ do
+      object <- loadBinEither "test/bin/objectsAndStringReferences.bin"
+      object `shouldBe` Right (RArray $ V.fromList
+        [ RHash mempty, RArray mempty, RIVar (RString "hello", UTF_8), RIVar (RString "haskell", UTF_8)
+        , RHash mempty, RArray mempty, RIVar (RString "hello", UTF_8), RIVar (RString "haskell", UTF_8)])

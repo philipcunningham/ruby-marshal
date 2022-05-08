@@ -77,6 +77,12 @@ writeCache :: RubyObject -> Marshal ()
 writeCache object = do
   cache <- get
   case object of
-    RIVar _   -> put $ cache { objects = V.snoc (objects cache) object }
-    RSymbol _ -> put $ cache { symbols = V.snoc (symbols cache) object }
+    RSymbol _ -> do
+      put $ cache { symbols = V.snoc (symbols cache) object }
+    RIVar _   -> do
+      put $ cache { objects = V.snoc (objects cache) object }
+    RArray _   -> do
+      put $ cache { objects = V.snoc (objects cache) object }
+    RHash _   -> do
+      put $ cache { objects = V.snoc (objects cache) object }
     _         -> return ()
