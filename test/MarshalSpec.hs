@@ -121,3 +121,90 @@ spec = describe "load" $ do
       object `shouldBe` Right (RArray $ V.fromList
         [ RHash mempty, RArray mempty, RIVar (RString "hello", UTF_8), RIVar (RString "haskell", UTF_8)
         , RHash mempty, RArray mempty, RIVar (RString "hello", UTF_8), RIVar (RString "haskell", UTF_8)])
+
+  context "when we have a positive Bignum (2**40)" $
+    it "should parse" $ do
+      object <- loadBin "test/bin/bignum.bin"
+      object `shouldBe` Just (RBignum 1099511627776)
+
+  context "when we have a negative Bignum (-(2**40))" $
+    it "should parse" $ do
+      object <- loadBin "test/bin/negativeBignum.bin"
+      object `shouldBe` Just (RBignum (-1099511627776))
+
+  context "when we have a Regexp /fo+/i" $
+    it "should parse the inner Regexp, discarding the IVar encoding wrapper" $ do
+      object <- loadBin "test/bin/regexp.bin"
+      -- options=1 (IGNORECASE); the enclosing IVar's encoding info is dropped
+      -- because the inner is not a String.
+      object `shouldBe` Just (RRegexp "fo+" 1)
+
+  context "when we have a Hash with a default value" $
+    it "should parse" $ do
+      object <- loadBin "test/bin/hashWithDefault.bin"
+      object `shouldBe` Just
+        (RHashWithDefault
+          (V.fromList [(RFixnum 1, RFixnum 10), (RFixnum 2, RFixnum 20)])
+          (RFixnum 0))
+
+  context "when we have a Class reference" $
+    it "should parse" $ do
+      object <- loadBin "test/bin/classRef.bin"
+      object `shouldBe` Just (RClass "Array")
+
+  context "when we have a Module reference" $
+    it "should parse" $ do
+      object <- loadBin "test/bin/moduleRef.bin"
+      object `shouldBe` Just (RModule "Comparable")
+
+  context "when we have a plain Object (Point.new(1, 2))" $
+    it "should parse the class name and instance variables" $ do
+      object <- loadBin "test/bin/object.bin"
+      object `shouldBe` Just
+        (RObject "Point"
+          (V.fromList [(RSymbol "@x", RFixnum 1), (RSymbol "@y", RFixnum 2)]))
+
+  context "when we have a Struct (PointStruct.new(3, 4))" $
+    it "should parse" $ do
+      object <- loadBin "test/bin/struct.bin"
+      object `shouldBe` Just
+        (RStruct "PointStruct"
+          (V.fromList [(RSymbol "x", RFixnum 3), (RSymbol "y", RFixnum 4)]))
+
+  context "when we have a UserDef object (Packed via _dump)" $
+    it "should expose the class name and opaque payload bytes" $ do
+      object <- loadBin "test/bin/userDef.bin"
+      -- [42].pack("L") = "*\\0\\0\\0" on a little-endian host.
+      object `shouldBe` Just (RUserDef "Packed" "\x2a\x00\x00\x00")
+
+  context "when we have a UserMarshal object (Boxed via marshal_dump)" $
+    it "should expose the class name and dumped payload" $ do
+      object <- loadBin "test/bin/userMarshal.bin"
+      object `shouldBe` Just (RUserMarshal "Boxed" (RFixnum 42))
+
+  context "when we have a String with an extra non-encoding instance variable" $
+    it "should still surface the String+encoding and not corrupt the stream" $ do
+      -- Previously the IVar parser failed when len /= 1; now it consumes all
+      -- IV bytes and just picks the encoding it understands.
+      object <- loadBin "test/bin/stringWithExtraIVar.bin"
+      object `shouldBe` Just (RIVar (RString "hello", UTF_8))
+
+  context "when we have a String extended with a module (tag 'e')" $
+    it "should pass the inner String through, dropping the module info" $ do
+      object <- loadBin "test/bin/extendedString.bin"
+      object `shouldBe` Just (RIVar (RString "extended", UTF_8))
+
+  context "when we have a subclassed Array (tag 'C')" $
+    it "should pass the inner Array through, dropping the subclass info" $ do
+      object <- loadBin "test/bin/subclassedArray.bin"
+      object `shouldBe` Just (RArray (V.fromList [RFixnum 1, RFixnum 2]))
+
+  context "when an object-link points back at a previously-parsed Object" $
+    it "should resolve the link to the cached Object" $ do
+      -- Exercises that the new RObject constructor participates in the
+      -- object cache so that @N references still work in mixed-type arrays.
+      let point = RObject "Point"
+                    (V.fromList [(RSymbol "@x", RFixnum 1), (RSymbol "@y", RFixnum 2)])
+      object <- loadBin "test/bin/objectLinkArray.bin"
+      object `shouldBe` Just
+        (RArray (V.fromList [point, RIVar (RString "marker", UTF_8), point]))

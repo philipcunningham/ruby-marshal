@@ -9,6 +9,38 @@ haskell = "haskell"
 someHash = {}
 someArray = []
 
+# Fixtures for the extended type coverage (Bignum, Regexp, Object, Struct,
+# Class, Module, UserDef, UserMarshal, Extended, UClass, multi-IV IVar).
+
+class Point
+  def initialize(x, y)
+    @x = x
+    @y = y
+  end
+end
+
+PointStruct = Struct.new(:x, :y)
+
+class Boxed
+  def initialize(v); @v = v; end
+  def marshal_dump; @v; end
+  def marshal_load(v); @v = v; end
+end
+
+class Packed
+  def initialize(n); @n = n; end
+  def _dump(_level); [@n].pack("L"); end
+  def self._load(s); new(s.unpack("L").first); end
+end
+
+module Tag; end
+class SubArray < Array; end
+
+bigNumber       = 2 ** 40
+extendedString  = "extended".extend(Tag)
+stringWithIvar  = "hello".tap { |s| s.instance_variable_set(:@meta, "world") }
+sharedPoint     = Point.new(1, 2)
+
 TYPES = {
   "0"                => 0,
   "2048"             => 2048,
@@ -34,6 +66,21 @@ TYPES = {
   "symbolArray"      => [:hello, :haskell, :hello, :haskell],
   "true"             => true,
   "objectsAndStringReferences" => [someHash, someArray, hello, haskell, someHash, someArray, hello, haskell],
+
+  "bignum"              => bigNumber,
+  "negativeBignum"      => -bigNumber,
+  "regexp"              => /fo+/i,
+  "hashWithDefault"     => Hash.new(0).tap { |h| h[1] = 10; h[2] = 20 },
+  "classRef"            => Array,
+  "moduleRef"           => Comparable,
+  "object"              => Point.new(1, 2),
+  "struct"              => PointStruct.new(3, 4),
+  "userDef"             => Packed.new(42),
+  "userMarshal"         => Boxed.new(42),
+  "stringWithExtraIVar" => stringWithIvar,
+  "extendedString"      => extendedString,
+  "subclassedArray"     => SubArray.new([1, 2]),
+  "objectLinkArray"     => [sharedPoint, "marker", sharedPoint],
 }
 
 def dump(name, x)
