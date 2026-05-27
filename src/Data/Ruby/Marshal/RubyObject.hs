@@ -24,6 +24,7 @@ import qualified Data.ByteString            as BS
 import qualified Data.Map.Strict            as DM
 import           Data.Ruby.Marshal.Encoding (RubyStringEncoding (..))
 import qualified Data.Vector                as V
+import           Data.Word                  (Word8)
 import           Prelude
 
 -- | Representation of a Ruby object.
@@ -34,10 +35,14 @@ data RubyObject
     -- ^ represents @true@ or @false@
   | RFixnum {-# UNPACK #-} !Int
     -- ^ represents a @Fixnum@
+  | RBignum                !Integer
+    -- ^ represents a @Bignum@
   | RArray                 !(V.Vector RubyObject)
     -- ^ represents an @Array@
   | RHash                  !(V.Vector (RubyObject, RubyObject))
     -- ^ represents an @Hash@
+  | RHashWithDefault       !(V.Vector (RubyObject, RubyObject)) !RubyObject
+    -- ^ represents a @Hash@ with a default value (pairs, then default)
   | RIVar                  !(RubyObject, RubyStringEncoding)
     -- ^ represents an @IVar@
   | RString                !BS.ByteString
@@ -46,8 +51,25 @@ data RubyObject
     -- ^ represents a @Float@
   | RSymbol                !BS.ByteString
     -- ^ represents a @Symbol@
+  | RRegexp                !BS.ByteString !Word8
+    -- ^ represents a @Regexp@ (pattern bytes, options flags)
+  | RObject                !BS.ByteString !(V.Vector (RubyObject, RubyObject))
+    -- ^ represents a generic @Object@ (class name, instance-variable pairs)
+  | RStruct                !BS.ByteString !(V.Vector (RubyObject, RubyObject))
+    -- ^ represents a @Struct@ (class name, member pairs)
+  | RClass                 !BS.ByteString
+    -- ^ represents a @Class@ reference (class name)
+  | RModule                !BS.ByteString
+    -- ^ represents a @Module@ reference (module name)
+  | RUserDef               !BS.ByteString !BS.ByteString
+    -- ^ represents an object dumped via @_dump@ (class name, opaque payload)
+  | RUserMarshal           !BS.ByteString !RubyObject
+    -- ^ represents an object dumped via @marshal_dump@ (class name, payload object)
+  | RData                  !BS.ByteString !RubyObject
+    -- ^ represents an object dumped via @_dump_data@ (class name, state object)
   | Unsupported
-    -- ^ represents an invalid object
+    -- ^ represents an object whose bytes were consumed but whose Ruby semantics
+    -- this library does not (yet) model
   deriving (Eq, Ord, Show)
 
 -- | Transform plain Haskell values to RubyObjects and back.

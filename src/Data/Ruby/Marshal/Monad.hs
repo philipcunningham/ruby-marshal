@@ -73,16 +73,31 @@ readSymbol :: Int -> Marshal (Maybe RubyObject)
 readSymbol index = readCache index symbols
 
 -- | Write an object to the appropriate cache.
+--
+-- Symbols feed the symbol table that 'Symlink' draws from; everything else
+-- that can be the target of an 'Object link' (@\@@) feeds the object table.
+-- 'RFixnum', 'RNil', 'RBool', and 'RString' are intentionally not cached:
+-- the first three are immediate values and bare 'RString' values never appear
+-- on the wire outside of an 'RIVar' wrapper, which is itself cached.
 writeCache :: RubyObject -> Marshal ()
 writeCache object = do
   cache <- get
+  let putObj = put $ cache { objects = V.snoc (objects cache) object }
+      putSym = put $ cache { symbols = V.snoc (symbols cache) object }
   case object of
-    RSymbol _ -> do
-      put $ cache { symbols = V.snoc (symbols cache) object }
-    RIVar _   -> do
-      put $ cache { objects = V.snoc (objects cache) object }
-    RArray _   -> do
-      put $ cache { objects = V.snoc (objects cache) object }
-    RHash _   -> do
-      put $ cache { objects = V.snoc (objects cache) object }
-    _         -> return ()
+    RSymbol _              -> putSym
+    RIVar _                -> putObj
+    RArray _               -> putObj
+    RHash _                -> putObj
+    RHashWithDefault _ _   -> putObj
+    RBignum _              -> putObj
+    RRegexp _ _            -> putObj
+    RObject _ _            -> putObj
+    RStruct _ _            -> putObj
+    RClass _               -> putObj
+    RModule _              -> putObj
+    RUserDef _ _           -> putObj
+    RUserMarshal _ _       -> putObj
+    RData _ _              -> putObj
+    Unsupported            -> putObj
+    _                      -> return ()

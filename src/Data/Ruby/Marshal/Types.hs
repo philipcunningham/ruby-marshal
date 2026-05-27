@@ -36,6 +36,19 @@ module Data.Ruby.Marshal.Types (
   , pattern StringChar
   , pattern SymbolChar
   , pattern SymlinkChar
+  , pattern BignumChar
+  , pattern HashDefChar
+  , pattern RegexpChar
+  , pattern ObjectChar
+  , pattern StructChar
+  , pattern ClassChar
+  , pattern ModuleChar
+  , pattern OldModuleChar
+  , pattern ExtendedChar
+  , pattern UserDefChar
+  , pattern UserMarshalChar
+  , pattern UClassChar
+  , pattern DataChar
 ) where
 
 import Data.Ruby.Marshal.Encoding
@@ -66,3 +79,29 @@ pattern StringChar = 34
 pattern SymbolChar = 58
 -- | Character that represents Symlink.
 pattern SymlinkChar = 59
+-- | Character that represents Bignum.
+pattern BignumChar = 108
+-- | Character that represents Hash with default value.
+pattern HashDefChar = 125
+-- | Character that represents Regexp.
+pattern RegexpChar = 47
+-- | Character that represents Object.
+pattern ObjectChar = 111
+-- | Character that represents Struct.
+pattern StructChar = 83
+-- | Character that represents Class reference.
+pattern ClassChar = 99
+-- | Character that represents Module reference.
+pattern ModuleChar = 109
+-- | Character that represents the legacy Module/Class reference.
+pattern OldModuleChar = 77
+-- | Character that represents an object extended with a module.
+pattern ExtendedChar = 101
+-- | Character that represents a user-defined dump (_dump).
+pattern UserDefChar = 117
+-- | Character that represents a user-defined marshal (marshal_dump).
+pattern UserMarshalChar = 85
+-- | Character that represents an object whose class is a user subclass of a builtin.
+pattern UClassChar = 67
+-- | Character that represents a Data object (_dump_data).
+pattern DataChar = 100
